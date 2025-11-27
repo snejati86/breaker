@@ -1,37 +1,58 @@
 # Circuit Panel Simulator
 
-A modern React TypeScript application for simulating electrical circuit panels with real-time load calculations, thermal modeling, and device management.
+An interactive electrical panel simulation tool for planning, visualizing, and understanding residential electrical systems.
+
+## What is this?
+
+Circuit Panel Simulator is a web-based application that lets you design and simulate a residential electrical panel. It provides a realistic visualization of how breakers, circuits, and devices interact, complete with real-time load calculations and thermal modeling.
+
+## Who is this for?
+
+- **Homeowners**: Plan electrical upgrades before calling an electrician. Understand your panel's capacity and identify which circuits power which outlets.
+- **Electricians & Contractors**: Quickly sketch out panel layouts for estimates or explain configurations to clients.
+- **Students & Educators**: Learn about electrical systems, load balancing, and circuit safety in an interactive environment.
+- **DIY Enthusiasts**: Experiment with panel configurations safely before making real-world changes.
 
 ## Features
 
-- **Interactive Electrical Panel**: Visual representation of main breakers and circuit breakers
-- **Real-time Load Calculations**: Automatic amperage calculations with thermal modeling
-- **Device Management**: Add and remove electrical devices with power consumption tracking
-- **Circuit Builder**: Create and manage electrical runs with outlets and switches
-- **Thermal Protection**: Breakers trip when overloaded or overheated
-- **Save/Load Configuration**: Export and import panel configurations
-- **Responsive Design**: Works across different screen sizes
+### Panel Management
+- **Configurable service sizes**: 100A, 200A, or 400A main breaker
+- **Single and double-pole breakers**: Support for 120V and 240V circuits
+- **Drag-and-drop breaker positioning**: Rearrange breakers by dragging them to new slots
+- **Visual slot layout**: Left/right column arrangement matching real panels
 
-## Technology Stack
+### Circuit Editor
+- **Multiple runs per breaker**: Branch circuits from a single breaker
+- **Outlet and switch components**: Add receptacles and light switches to circuits
+- **Ground wire toggle**: Enable/disable grounding per component
+- **Real-time load display**: See amperage draw per circuit
 
-- **Frontend**: React 19 with TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **Icons**: Font Awesome
-- **Testing**: Vitest + React Testing Library
-- **Type Safety**: Complete TypeScript coverage
+### Device Simulation
+- **Pre-configured devices**: Common appliances with realistic wattage (LED bulbs, laptops, microwaves, space heaters, EV chargers, etc.)
+- **Custom device search**: Add any device by name with AI-powered wattage lookup
+- **Per-device power toggle**: Turn individual devices on/off
+- **Automatic load calculation**: Watts converted to amps at 120V/240V
+
+### Thermal Modeling
+- **Temperature simulation**: Components heat up under load
+- **Visual temperature indicators**: Color-coded warnings (green/orange/red)
+- **Breaker trip simulation**: Overloaded circuits will trip
+
+### Data Persistence
+- **Save/Load configurations**: Export panel layouts as JSON files
+- **PWA support**: Install as a standalone app on desktop or mobile
 
 ## Getting Started
 
 ### Prerequisites
-
 - Node.js 20.19+ or 22.12+
-- npm or pnpm
+- npm
 
 ### Installation
 
 ```bash
-# Navigate to the project directory
+# Clone the repository
+git clone <repository-url>
 cd circuits-app
 
 # Install dependencies
@@ -41,148 +62,99 @@ npm install
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173/` (or another port if 5173 is in use).
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run test` - Run tests in watch mode
-- `npm run test:run` - Run tests once
-- `npm run lint` - Run ESLint
-
-## Project Structure
-
-```
-circuits-app/
-├── src/
-│   ├── components/           # React components
-│   │   ├── MainBreaker.tsx
-│   │   ├── BreakerModule.tsx
-│   │   ├── ElectricalPanel.tsx
-│   │   ├── CircuitEditor.tsx
-│   │   ├── DeviceManager.tsx
-│   │   └── EmptySlot.tsx
-│   ├── hooks/               # Custom React hooks
-│   │   ├── useBreakers.ts
-│   │   └── useSimulation.ts
-│   ├── constants/           # Application constants
-│   │   ├── breakers.ts
-│   │   └── devices.ts
-│   ├── types/              # TypeScript type definitions
-│   │   └── index.ts
-│   ├── utils/              # Utility functions
-│   │   └── calculations.ts
-│   ├── services/           # API services
-│   │   └── deviceApi.ts
-│   └── test/               # Test configuration
-│       └── setup.ts
-├── dist/                   # Production build output
-├── public/                 # Static assets
-└── package.json
-```
-
-## Key Features Explained
-
-### Electrical Panel Simulation
-
-The application simulates a realistic electrical panel with:
-
-- **Main Service Disconnect**: Controls power to the entire panel
-- **Individual Breakers**: Can be added, removed, and configured
-- **Slot Management**: Proper slot allocation for single and double pole breakers
-- **Amperage Ratings**: Configurable breaker ratings (15A, 20A, 30A, 40A, 50A, 60A, 100A)
-
-### Load Calculations
-
-- Real-time amperage calculations based on connected devices
-- Thermal heat modeling with automatic breaker trips
-- Main panel overload protection
-- Power consumption tracking per device
-
-### Device Management
-
-- Predefined device library (LED bulbs, appliances, etc.)
-- Custom device search with AI-powered specifications
-- Individual device power control
-- Ground fault circuit protection simulation
-
-### Circuit Building
-
-- Visual circuit representation
-- Multiple runs per breaker
-- Outlets and switches with different behaviors
-- Wire grounding status indicators
-
-## Build and Deployment
+The app will be available at `http://localhost:5173`
 
 ### Production Build
 
 ```bash
 npm run build
+npm run preview
 ```
 
-This creates an optimized build in the `dist/` directory ready for deployment.
+## Tech Stack
 
-### Testing
+- **React 19** with TypeScript
+- **Vite 7** for fast builds and HMR
+- **Tailwind CSS** for styling
+- **@dnd-kit** for drag-and-drop functionality
+- **Vitest** + React Testing Library for unit tests
+- **Playwright** for E2E testing
+- **PWA** with offline support
 
-The project includes comprehensive unit tests:
+## Scripts
 
-```bash
-# Run tests
-npm run test
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+| `npm run test` | Run tests in watch mode |
+| `npm run test:run` | Run tests once (CI) |
+| `npm run test:e2e` | Run Playwright E2E tests |
 
-# Run tests once (CI mode)  
-npm run test:run
+## Project Structure
+
 ```
-
-### Browser Compatibility
-
-- Modern browsers with ES2015+ support
-- Responsive design for mobile and desktop
-- Font Awesome icons for consistent visuals
+src/
+├── components/          # React components
+│   ├── __tests__/       # Component unit tests
+│   ├── BreakerModule    # Individual breaker display
+│   ├── CircuitEditor    # Circuit configuration panel
+│   ├── DeviceManager    # Device list and controls
+│   ├── ElectricalPanel  # Main panel visualization
+│   └── MainBreaker      # Main service disconnect
+├── hooks/               # Custom React hooks
+│   └── useBreakers      # Breaker state management
+├── constants/           # Device and breaker specs
+├── types/               # TypeScript definitions
+├── utils/               # Calculation helpers
+└── services/            # API services
+```
 
 ## Development
 
-### Adding New Components
-
-1. Create component in `src/components/`
-2. Add TypeScript interfaces in `src/types/`
-3. Write tests in `src/components/__tests__/`
-4. Update exports if needed
-
 ### Adding New Device Types
 
-1. Update `DEVICE_TYPES` or `LIGHT_TYPES` in `src/constants/devices.ts`
-2. Ensure proper icon mapping with Font Awesome classes
+Update `DEVICE_TYPES` or `LIGHT_TYPES` in `src/constants/devices.ts`:
 
-### Configuration
+```typescript
+{
+  name: 'Coffee Maker',
+  watts: 900,
+  icon: 'fa-mug-hot'
+}
+```
 
-- **Tailwind CSS**: Configuration in `tailwind.config.js`
-- **Vite**: Configuration in `vite.config.ts`
-- **TypeScript**: Configuration in `tsconfig.json`
+### Adding New Breaker Ratings
 
-## Migration from Original
+Update `BREAKER_SPECS` in `src/constants/breakers.ts`.
 
-This modern React application is a complete rewrite of the original single-file HTML application, featuring:
+### Testing
 
-- ✅ Modular component architecture
-- ✅ TypeScript type safety
-- ✅ Modern build system (Vite)
-- ✅ Comprehensive testing suite
-- ✅ Responsive design improvements
-- ✅ Performance optimizations
-- ✅ Code organization and maintainability
+```bash
+# Run unit tests
+npm run test
 
-## Contributing
+# Run tests once (CI mode)
+npm run test:run
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new features
-4. Ensure all tests pass
-5. Submit a pull request
+# Run E2E tests
+npm run test:e2e
+```
+
+## CI/CD
+
+The project includes GitHub Actions for:
+- **Automated testing**: Runs lint and tests on every push/PR
+- **Production deployment**: Deploys to AWS S3 on main branch pushes
+
+See `.github/workflows/ci.yml` for configuration.
+
+## Safety Disclaimer
+
+This is a **simulation tool for educational and planning purposes only**. It does not replace professional electrical work or advice. Always consult a licensed electrician for real electrical installations and modifications. Working with electricity is dangerous and should only be performed by qualified professionals.
 
 ## License
 
-This project is for educational and simulation purposes.
+MIT

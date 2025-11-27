@@ -59,25 +59,25 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
   const showComponentTemp = totalComponents > 1;
 
   return (
-    <div className="flex-grow bg-gray-900 relative overflow-hidden flex flex-col">
+    <div className="flex-grow bg-gray-900 relative overflow-hidden flex flex-col w-full">
       {/* Breaker Info Header */}
-      <div className="absolute top-4 left-6 z-10 p-4 bg-gray-800/80 rounded border border-gray-600 backdrop-blur-sm">
-        <h2 className="text-2xl font-bold text-white flex items-center gap-2 mb-2">
-          <span className="bg-gray-700 px-2 py-1 rounded text-sm border border-gray-500 text-gray-300">
+      <div className="relative md:absolute top-0 md:top-4 left-0 md:left-6 z-10 p-3 md:p-4 bg-gray-800/80 md:rounded border-b md:border border-gray-600 backdrop-blur-sm w-full md:w-auto">
+        <h2 className="text-lg md:text-2xl font-bold text-white flex items-center gap-2 mb-2 flex-wrap">
+          <span className="bg-gray-700 px-2 py-1 rounded text-xs md:text-sm border border-gray-500 text-gray-300">
             Slot {breaker.slots.join('+')}
           </span>
           <input
-            className="bg-transparent border-b border-gray-600 focus:border-blue-500 outline-none w-48"
+            className="bg-transparent border-b border-gray-600 focus:border-blue-500 outline-none flex-1 min-w-0 md:w-48 md:flex-none text-base md:text-2xl"
             value={breaker.name}
             onChange={(e) => onUpdateBreakerName(breaker.id, e.target.value)}
           />
         </h2>
-        
-        <div className="flex items-center gap-4 text-sm text-gray-300">
-          <div className="flex items-center gap-2 bg-gray-900 px-2 py-1 rounded border border-gray-600">
-            <span className="text-xs uppercase text-gray-500">Breaker Rating</span>
+
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm text-gray-300">
+          <div className="flex items-center gap-1 md:gap-2 bg-gray-900 px-2 py-1 rounded border border-gray-600">
+            <span className="text-[10px] md:text-xs uppercase text-gray-500">Breaker Rating</span>
             <select
-              className="bg-transparent font-bold text-amber-400 outline-none cursor-pointer"
+              className="bg-transparent font-bold text-amber-400 outline-none cursor-pointer text-sm md:text-base"
               value={breaker.rating}
               onChange={(e) => onUpdateBreakerRating(breaker.id, Number(e.target.value))}
             >
@@ -86,27 +86,27 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
               ))}
             </select>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-xs uppercase text-gray-500">Active Load</span>
-            <span className="font-mono font-bold">{activeAmps.toFixed(1)}A</span>
+
+          <div className="flex items-center gap-1 md:gap-2">
+            <span className="text-[10px] md:text-xs uppercase text-gray-500">Active Load</span>
+            <span className="font-mono font-bold text-sm md:text-base">{activeAmps.toFixed(1)}A</span>
           </div>
 
           <div
-            className="flex items-center gap-2"
+            className="flex items-center gap-1 md:gap-2"
             title="Maximum temperature across all components on this circuit"
           >
-            <span className="text-xs uppercase text-gray-500">Circuit Temp</span>
+            <span className="text-[10px] md:text-xs uppercase text-gray-500">Circuit Temp</span>
             <span
               data-testid="breaker-temp"
               data-temp-value={breakerTemperature.toFixed(2)}
-              className={`font-mono font-bold ${getTemperatureTone(breakerTemperature)}`}
+              className={`font-mono font-bold text-sm md:text-base ${getTemperatureTone(breakerTemperature)}`}
             >
               {formatTemperature(breakerTemperature)}
             </span>
           </div>
         </div>
-        
+
         {breaker.thermalHeat > 0 && (
           <div className="mt-2 w-full bg-gray-700 h-1 rounded overflow-hidden">
             <div
@@ -118,15 +118,15 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
       </div>
 
       {/* Circuit Visualization */}
-      <div className="flex-grow overflow-auto p-10 pt-32">
-        <div className="flex flex-col gap-12">
+      <div className="flex-grow overflow-auto p-4 md:p-10 md:pt-32">
+        <div className="flex flex-col gap-6 md:gap-12">
           {breaker.runs.map((run, runIndex) => (
-            <div key={runIndex} className="flex items-center">
-              <div className="w-16 h-1 bg-gray-600 relative" />
-              
+            <div key={runIndex} className="flex flex-wrap md:flex-nowrap items-start md:items-center gap-2 md:gap-0">
+              <div className="hidden md:block w-16 h-1 bg-gray-600 relative" />
+
               {run.map((component, compIndex) => (
-                <div key={component.id} className="flex items-center">
-                  <div className="relative w-48 bg-gray-800 border border-gray-600 rounded p-3 shadow-lg group">
+                <div key={component.id} className="flex items-center w-full md:w-auto">
+                  <div className="relative w-full md:w-48 bg-gray-800 border border-gray-600 rounded p-3 shadow-lg group">
                     <div className="flex justify-between text-xs text-gray-500 font-bold mb-2">
                       <span>{component.type.toUpperCase()}</span>
                       <button
@@ -197,16 +197,18 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
               ))}
               
               {/* Add Component Buttons */}
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-row md:flex-col gap-2 md:gap-1">
                 <button
                   onClick={() => onAddComponent(breaker.id, runIndex, 'outlet')}
-                  className="w-8 h-8 rounded-full bg-gray-700 border border-gray-500 flex items-center justify-center hover:bg-gray-600 text-xs"
+                  className="w-11 h-11 md:w-8 md:h-8 rounded-full bg-gray-700 border border-gray-500 flex items-center justify-center hover:bg-gray-600 active:bg-gray-500 text-sm md:text-xs"
+                  aria-label="Add outlet"
                 >
                   <i className="fas fa-plug" />
                 </button>
                 <button
                   onClick={() => onAddComponent(breaker.id, runIndex, 'switch')}
-                  className="w-8 h-8 rounded-full bg-purple-900 border border-purple-700 flex items-center justify-center hover:bg-purple-800 text-xs"
+                  className="w-11 h-11 md:w-8 md:h-8 rounded-full bg-purple-900 border border-purple-700 flex items-center justify-center hover:bg-purple-800 active:bg-purple-700 text-sm md:text-xs"
+                  aria-label="Add switch"
                 >
                   <i className="fas fa-toggle-on" />
                 </button>
@@ -217,7 +219,7 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
           {/* Add New Branch Button */}
           <button
             onClick={() => onAddRun(breaker.id)}
-            className="w-32 py-2 border border-dashed border-gray-600 text-gray-500 text-xs hover:bg-gray-800 hover:text-white rounded"
+            className="w-full md:w-32 py-3 md:py-2 border border-dashed border-gray-600 text-gray-500 text-sm md:text-xs hover:bg-gray-800 active:bg-gray-700 hover:text-white rounded"
           >
             + New Branch
           </button>

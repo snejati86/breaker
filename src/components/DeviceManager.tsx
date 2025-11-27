@@ -184,48 +184,53 @@ const DeviceManager: React.FC<DeviceManagerProps> = ({
       )}
 
       {/* Ground Wire Toggle */}
-      <div className="flex items-center gap-2 mb-2">
+      <label className="flex items-center gap-2 mb-2 py-1 cursor-pointer">
         <input
           type="checkbox"
           checked={component.grounded}
           onChange={onToggleGround}
-          className="accent-green-500"
+          className="accent-green-500 w-4 h-4 md:w-3.5 md:h-3.5"
         />
-        <span className={`text-[10px] ${component.grounded ? 'text-green-400' : 'text-gray-500'}`}>
+        <span className={`text-xs md:text-[10px] ${component.grounded ? 'text-green-400' : 'text-gray-500'}`}>
           Ground Wire
         </span>
-      </div>
+      </label>
 
 
       {/* Devices List */}
-      <div data-testid="device-list" className="space-y-1 max-h-24 overflow-y-auto">
+      <div data-testid="device-list" className="space-y-1.5 md:space-y-1 max-h-32 md:max-h-24 overflow-y-auto">
         {component.devices.map((device) => (
           <div
             key={device.uid}
             data-testid="device-row"
-            className={`flex justify-between items-center p-1 rounded border text-[10px] ${
+            className={`flex justify-between items-center p-2 md:p-1 rounded border text-xs md:text-[10px] ${
               device.isOn
                 ? 'bg-gray-700 border-gray-600'
                 : 'bg-gray-800 border-gray-700 opacity-60'
             }`}
           >
             <div className="flex gap-2 items-center overflow-hidden">
-              <button onClick={() => onToggleDevice(device.uid)}>
+              <button
+                onClick={() => onToggleDevice(device.uid)}
+                className="p-1.5 md:p-0 -m-1.5 md:m-0 active:opacity-70"
+                aria-label={`Toggle ${device.name} ${device.isOn ? 'off' : 'on'}`}
+              >
                 <i
                   className={`fas fa-power-off ${
                     device.isOn ? 'text-green-400' : 'text-gray-500'
                   }`}
                 />
               </button>
-              <span className="truncate w-20" title={device.name}>
+              <span className="truncate flex-1 md:w-20" title={device.name}>
                 {device.name}
               </span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 md:gap-2 items-center">
               <span className="text-gray-400">{device.watts}W</span>
               <button
                 onClick={() => onRemoveDevice(device.uid)}
-                className="hover:text-red-500"
+                className="p-1.5 md:p-0 -m-1.5 md:m-0 hover:text-red-500 active:text-red-400"
+                aria-label={`Remove ${device.name}`}
               >
                 <i className="fas fa-times" />
               </button>
@@ -237,9 +242,10 @@ const DeviceManager: React.FC<DeviceManagerProps> = ({
       {/* Add Device Dropdown */}
       <div className="mt-2">
         <select
-          className="w-full bg-gray-700 text-[10px] p-1.5 rounded border border-gray-600 hover:border-gray-500 cursor-pointer"
+          className="w-full bg-gray-700 text-sm md:text-[10px] p-2.5 md:p-1.5 rounded border border-gray-600 hover:border-gray-500 active:border-gray-400 cursor-pointer"
           value={selectedDevice}
           onChange={(e) => handleSelectChange(e.target.value)}
+          aria-label="Add device to this component"
         >
           <option value="">+ Plug In Device...</option>
           {deviceOptions.map((deviceType) => (

@@ -5,12 +5,15 @@ import { useBreakers } from './hooks/useBreakers';
 import { useSimulation } from './hooks/useSimulation';
 import './App.css';
 
+type MobileView = 'panel' | 'editor';
+
 function App() {
   const [mainServiceLimit, setMainServiceLimit] = useState(200);
   const [mainBreakerTripped, setMainBreakerTripped] = useState(false);
   const [mainBreakerManualOff, setMainBreakerManualOff] = useState(false);
   const [timeSpeed, setTimeSpeed] = useState(1);
   const [notice, setNotice] = useState<string | null>(null);
+  const [mobileView, setMobileView] = useState<MobileView>('panel');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const notify = useCallback((message: string) => {
@@ -108,21 +111,21 @@ function App() {
       {/* Top Bar */}
       <header
         role="banner"
-        className="bg-gray-800 p-3 shadow border-b border-gray-700 flex justify-between items-center z-20"
+        className="bg-gray-800 p-2 md:p-3 shadow border-b border-gray-700 flex flex-col md:flex-row justify-between items-center z-20 gap-2"
       >
-        <div className="flex gap-4 items-center">
-          <h1 className="text-sm font-bold text-gray-400">PANEL SIM V19</h1>
+        <div className="flex gap-2 md:gap-4 items-center w-full md:w-auto justify-between md:justify-start">
+          <h1 className="text-xs md:text-sm font-bold text-gray-400">PANEL SIM</h1>
           <div
             role="status"
             aria-live="polite"
             aria-label={`Total load: ${simState.totalLoad.toFixed(1)} amps${mainBreakerTripped ? ', TRIPPED' : ''}`}
-            className={`px-3 py-1 rounded border flex flex-col items-center ${
+            className={`px-2 md:px-3 py-1 rounded border flex flex-col items-center ${
               mainBreakerTripped
                 ? 'bg-red-900 border-red-500 animate-pulse'
                 : 'bg-gray-700 border-gray-600'
             }`}
           >
-            <span className="text-[8px] uppercase">Total Load</span>
+            <span className="text-[8px] uppercase">Load</span>
             <span className="text-xs font-mono">{simState.totalLoad.toFixed(1)}A</span>
           </div>
           <label htmlFor="time-speed" className="sr-only">
@@ -132,38 +135,63 @@ function App() {
             id="time-speed"
             value={timeSpeed}
             onChange={(e) => setTimeSpeed(Number(e.target.value))}
-            className="bg-gray-700 border border-gray-600 rounded text-xs p-1"
+            className="bg-gray-700 border border-gray-600 rounded text-xs p-1 hidden md:block"
             aria-label="Simulation speed multiplier"
           >
             <option value="1">1x Speed</option>
             <option value="10">10x Speed</option>
             <option value="50">50x Speed</option>
           </select>
+          <nav aria-label="Panel actions" className="flex gap-1 md:gap-2">
+            <button
+              onClick={handleSavePanel}
+              className="px-2 md:px-3 py-1 bg-blue-900 border border-blue-700 rounded text-xs hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              aria-label="Save panel configuration"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-2 md:px-3 py-1 bg-green-900 border border-green-700 rounded text-xs hover:bg-green-800 focus:ring-2 focus:ring-green-500 focus:outline-none"
+              aria-label="Load panel configuration from file"
+            >
+              Load
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              onChange={handleLoadPanel}
+              accept=".json"
+              aria-label="Select panel configuration file"
+            />
+          </nav>
         </div>
 
-        <nav aria-label="Panel actions" className="flex gap-2">
+        {/* Mobile Tab Navigation */}
+        <nav className="flex md:hidden w-full" aria-label="View selection">
           <button
-            onClick={handleSavePanel}
-            className="px-3 py-1 bg-blue-900 border border-blue-700 rounded text-xs hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            aria-label="Save panel configuration"
+            onClick={() => setMobileView('panel')}
+            className={`flex-1 py-2 text-xs font-semibold rounded-l border transition-colors ${
+              mobileView === 'panel'
+                ? 'bg-blue-600 border-blue-500 text-white'
+                : 'bg-gray-700 border-gray-600 text-gray-400'
+            }`}
           >
-            Save
+            <i className="fas fa-th mr-1" aria-hidden="true" />
+            Panel
           </button>
           <button
-            onClick={() => fileInputRef.current?.click()}
-            className="px-3 py-1 bg-green-900 border border-green-700 rounded text-xs hover:bg-green-800 focus:ring-2 focus:ring-green-500 focus:outline-none"
-            aria-label="Load panel configuration from file"
+            onClick={() => setMobileView('editor')}
+            className={`flex-1 py-2 text-xs font-semibold rounded-r border-t border-r border-b transition-colors ${
+              mobileView === 'editor'
+                ? 'bg-blue-600 border-blue-500 text-white'
+                : 'bg-gray-700 border-gray-600 text-gray-400'
+            }`}
           >
-            Load
+            <i className="fas fa-edit mr-1" aria-hidden="true" />
+            Editor {activeBreaker ? `(${activeBreaker.name})` : ''}
           </button>
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleLoadPanel}
-            accept=".json"
-            aria-label="Select panel configuration file"
-          />
         </nav>
       </header>
 
@@ -171,44 +199,57 @@ function App() {
       <main
         id="main-content"
         role="main"
-        className="flex flex-grow overflow-hidden"
+        className="flex flex-col md:flex-row flex-grow overflow-hidden"
       >
-        <ElectricalPanel
-          breakers={breakers}
-          mainServiceLimit={mainServiceLimit}
-          mainBreakerTripped={mainBreakerTripped}
-          mainBreakerManualOff={mainBreakerManualOff}
-          selectedBreakerId={selectedBreakerId}
-          onToggleMainPower={toggleMainPower}
-          onChangeMainLimit={handleMainLimitChange}
-          onSelectBreaker={setSelectedBreakerId}
-          onToggleBreaker={toggleBreaker}
-          onDeleteBreaker={deleteBreaker}
-          onAddBreaker={addBreakerAtSlot}
-          onMoveBreaker={moveBreaker}
-        />
-
-        {activeBreaker ? (
-          <CircuitEditor
-            breaker={activeBreaker}
-            mainPowerOn={mainPowerOn}
-            onUpdateBreakerName={updateBreakerName}
-            onUpdateBreakerRating={updateBreakerRating}
-            onAddRun={addRun}
-            onAddComponent={addComponent}
-            onToggleSwitch={toggleSwitch}
-            onToggleGround={toggleGround}
-            onRemoveComponent={removeComponent}
-            onAddDevice={addDevice}
-            onToggleDevicePower={toggleDevicePower}
-            onRemoveDevice={removeDevice}
+        {/* Panel - hidden on mobile when editor view is active */}
+        <div className={`${mobileView === 'editor' ? 'hidden' : 'flex'} md:flex`}>
+          <ElectricalPanel
+            breakers={breakers}
+            mainServiceLimit={mainServiceLimit}
+            mainBreakerTripped={mainBreakerTripped}
+            mainBreakerManualOff={mainBreakerManualOff}
+            selectedBreakerId={selectedBreakerId}
+            onToggleMainPower={toggleMainPower}
+            onChangeMainLimit={handleMainLimitChange}
+            onSelectBreaker={(id) => {
+              setSelectedBreakerId(id);
+              setMobileView('editor'); // Auto-switch to editor on mobile
+            }}
+            onToggleBreaker={toggleBreaker}
+            onDeleteBreaker={deleteBreaker}
+            onAddBreaker={addBreakerAtSlot}
+            onMoveBreaker={moveBreaker}
           />
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-500 flex-col flex-grow">
-            <i className="fas fa-arrow-left text-4xl mb-4 opacity-50" aria-hidden="true" />
-            <p>Select a breaker on the left to edit wiring</p>
-          </div>
-        )}
+        </div>
+
+        {/* Editor - hidden on mobile when panel view is active */}
+        <div className={`${mobileView === 'panel' ? 'hidden' : 'flex'} md:flex flex-grow`}>
+          {activeBreaker ? (
+            <CircuitEditor
+              breaker={activeBreaker}
+              mainPowerOn={mainPowerOn}
+              onUpdateBreakerName={updateBreakerName}
+              onUpdateBreakerRating={updateBreakerRating}
+              onAddRun={addRun}
+              onAddComponent={addComponent}
+              onToggleSwitch={toggleSwitch}
+              onToggleGround={toggleGround}
+              onRemoveComponent={removeComponent}
+              onAddDevice={addDevice}
+              onToggleDevicePower={toggleDevicePower}
+              onRemoveDevice={removeDevice}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500 flex-col flex-grow p-8">
+              <i className="fas fa-arrow-left text-4xl mb-4 opacity-50 hidden md:block" aria-hidden="true" />
+              <i className="fas fa-hand-pointer text-4xl mb-4 opacity-50 md:hidden" aria-hidden="true" />
+              <p className="text-center">
+                <span className="hidden md:inline">Select a breaker on the left to edit wiring</span>
+                <span className="md:hidden">Tap a breaker in the Panel tab to edit its wiring</span>
+              </p>
+            </div>
+          )}
+        </div>
       </main>
       {notice && (
         <div

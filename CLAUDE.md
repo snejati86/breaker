@@ -203,5 +203,58 @@ npm run test:e2e
 
 ### UI Interactions
 - Click to toggle breakers
-- Drag to add devices
+- Drag-and-drop to reposition breakers
 - Visual feedback for overload conditions
+
+### Drag-and-Drop Implementation
+This project uses `@dnd-kit` for drag-and-drop functionality:
+- `DndContext` wraps draggable areas
+- `useSortable` for draggable items
+- `useDroppable` for drop targets
+- `DragOverlay` for visual feedback during drag
+- `PointerSensor` with distance threshold (8px) to distinguish clicks from drags
+
+### Auto-Add Dropdown Pattern
+For device/item selection, prefer auto-adding on dropdown selection rather than dropdown + separate button. This reduces clicks and feels more intuitive:
+- Reset the dropdown to placeholder immediately after adding
+- Use refs (`isAddingRef`, `lastAddedRef`) to debounce rapid selections
+- Prevents double-triggers from React's synthetic events
+
+## Known Gotchas
+
+### React Hook Dependency Arrays
+When using `useCallback` or `useMemo` with optional callback props (like `notify?: (msg: string) => void`), always include them in the dependency array even if optional. The React Compiler's `preserve-manual-memoization` rule will fail if inferred dependencies don't match declared ones.
+
+```typescript
+// ❌ Wrong - notify is used but not in deps
+const doSomething = useCallback(() => {
+  notify?.('message');
+}, [otherDep]);
+
+// ✅ Correct - include notify even though optional
+const doSomething = useCallback(() => {
+  notify?.('message');
+}, [otherDep, notify]);
+```
+
+### GitHub Actions Secrets in Conditionals
+Secrets cannot be accessed directly in `if:` conditions. To conditionally run a step based on whether a secret exists:
+
+```yaml
+# ❌ Wrong - secrets not accessible in if
+- name: Deploy
+  if: secrets.AWS_KEY != ''
+
+# ✅ Correct - set as env first, then check
+- name: Deploy
+  env:
+    AWS_KEY: ${{ secrets.AWS_KEY }}
+  if: env.AWS_KEY != ''
+```
+
+### Test Updates When Changing Behavior
+When changing component behavior (e.g., removing a button, changing interaction patterns):
+1. Update tests FIRST to reflect new expected behavior
+2. Then update the component
+3. Run tests to verify the new behavior works
+4. This ensures tests document the intended behavior, not just pass

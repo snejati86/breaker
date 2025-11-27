@@ -250,7 +250,7 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="w-96 bg-gray-200 flex flex-col items-center p-4 overflow-y-auto border-r-4 border-gray-700 shadow-2xl relative panel-bg">
+      <div className="w-full md:w-96 bg-gray-200 flex flex-col items-center p-2 md:p-4 overflow-y-auto md:border-r-4 border-gray-700 shadow-2xl relative panel-bg">
         <MainBreaker
           isOn={!mainBreakerManualOff}
           isTripped={mainBreakerTripped}
@@ -259,7 +259,7 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
           onChangeLimit={onChangeMainLimit}
         />
 
-        <div className="bg-black p-2 pb-4 rounded w-full max-w-xs shadow-inner flex gap-1">
+        <div className="bg-black p-1.5 md:p-2 pb-3 md:pb-4 rounded w-full max-w-xs shadow-inner flex gap-0.5 md:gap-1">
           <div className="flex-1 flex flex-col">{leftCol}</div>
           <div className="w-4 bg-gray-800 border-x border-gray-700 relative" />
           <div className="flex-1 flex flex-col">{rightCol}</div>
