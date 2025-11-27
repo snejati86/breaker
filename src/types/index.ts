@@ -1,0 +1,36 @@
+import type { DeviceType } from '../constants/devices';
+
+export interface Device extends DeviceType {
+  uid: string;
+  isOn: boolean;
+}
+
+export interface Component {
+  id: string;
+  type: 'outlet' | 'switch';
+  devices: Device[];
+  grounded: boolean;
+  isOn?: boolean;
+  temperature?: number;
+}
+
+export interface Breaker {
+  id: string;
+  name: string;
+  rating: number;
+  slots: number[];
+  thermalHeat: number;
+  on: boolean;
+  runs: Component[][];
+}
+
+export interface SimulationState {
+  totalLoad: number;
+}
+
+export interface SearchModal {
+  open: boolean;
+  breakerId: string | null;
+  runIndex: number | null;
+  compIndex: number | null;
+}

@@ -1,0 +1,99 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/*
+ * Font Awesome CSS Import
+ * NOTE: This imports the full Font Awesome library (~100KB).
+ * For better tree-shaking, consider migrating to @fortawesome/react-fontawesome
+ * with individual icon imports. This requires refactoring components to use
+ * <FontAwesomeIcon icon={faIcon} /> instead of <i className="fas fa-icon" />.
+ */
+@import '@fortawesome/fontawesome-free/css/all.min.css';
+
+body { 
+  background-color: #1f2937; 
+  color: white; 
+}
+
+.electron-path { 
+  fill: none; 
+  stroke-linecap: round; 
+}
+
+@keyframes flow { 
+  to { stroke-dashoffset: -20; } 
+}
+
+.panel-bg { 
+  background-color: #9ca3af; 
+  border: 4px solid #4b5563; 
+}
+
+.breaker-black { 
+  background-color: #111827; 
+  box-shadow: inset 0 0 5px #000; 
+}
+
+.handle-on-left { 
+  transform: translateX(10px); 
+  background-color: #10b981; 
+}
+
+.handle-off-left { 
+  transform: translateX(-5px); 
+  background-color: #ef4444; 
+}
+
+.handle-on-right { 
+  transform: translateX(-10px); 
+  background-color: #10b981; 
+}
+
+.handle-off-right { 
+  transform: translateX(5px); 
+  background-color: #ef4444; 
+}
+
+.main-handle-on { 
+  transform: translateY(0px); 
+  background-color: #10b981; 
+}
+
+.main-handle-off { 
+  transform: translateY(20px); 
+  background-color: #ef4444; 
+}
+
+::-webkit-scrollbar { 
+  height: 6px; 
+  width: 6px; 
+}
+
+::-webkit-scrollbar-track { 
+  background: #374151; 
+}
+
+::-webkit-scrollbar-thumb { 
+  background: #9ca3af; 
+  border-radius: 4px; 
+}
+
+::-webkit-scrollbar-thumb:hover { 
+  background: #d1d5db; 
+}
+
+.loader { 
+  border: 2px solid #f3f3f3; 
+  border-top: 2px solid #3498db; 
+  border-radius: 50%; 
+  width: 12px; 
+  height: 12px; 
+  animation: spin 1s linear infinite; 
+  display: inline-block; 
+}
+
+@keyframes spin { 
+  0% { transform: rotate(0deg); } 
+  100% { transform: rotate(360deg); } 
+}

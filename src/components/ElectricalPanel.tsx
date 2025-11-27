@@ -1,0 +1,295 @@
+import React, { useState, useCallback } from 'react';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCenter,
+  useDroppable,
+} from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import type { Breaker } from '../types';
+import { SLOTS_MAP } from '../constants/breakers';
+import MainBreaker from './MainBreaker';
+import BreakerModule from './BreakerModule';
+import EmptySlot from './EmptySlot';
+import BreakerTypeModal from './BreakerTypeModal';
+
+interface ElectricalPanelProps {
+  breakers: Breaker[];
+  mainServiceLimit: number;
+  mainBreakerTripped: boolean;
+  mainBreakerManualOff: boolean;
+  selectedBreakerId: string | null;
+  onToggleMainPower: () => void;
+  onChangeMainLimit: (limit: number) => void;
+  onSelectBreaker: (id: string) => void;
+  onToggleBreaker: (id: string) => void;
+  onDeleteBreaker: (id: string) => void;
+  onAddBreaker: (slotNum: number, type: 'single' | 'double') => void;
+  onMoveBreaker: (breakerId: string, targetSlot: number) => void;
+}
+
+// Draggable wrapper for BreakerModule
+interface DraggableBreakerProps {
+  breaker: Breaker;
+  slotNumber: number;
+  isRightSide: boolean;
+  isSelected: boolean;
+  onSelect: () => void;
+  onToggle: () => void;
+  onDelete: () => void;
+}
+
+const DraggableBreaker: React.FC<DraggableBreakerProps> = ({
+  breaker,
+  slotNumber,
+  isRightSide,
+  isSelected,
+  onSelect,
+  onToggle,
+  onDelete,
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: breaker.id,
+    data: {
+      breaker,
+      slotNumber,
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <BreakerModule
+        breaker={breaker}
+        slotNumber={slotNumber}
+        isRightSide={isRightSide}
+        isSelected={isSelected}
+        onSelect={onSelect}
+        onToggle={onToggle}
+        onDelete={onDelete}
+      />
+    </div>
+  );
+};
+
+// Droppable wrapper for EmptySlot
+interface DroppableEmptySlotProps {
+  slotNum: number;
+  onClick: () => void;
+}
+
+const DroppableEmptySlot: React.FC<DroppableEmptySlotProps> = ({
+  slotNum,
+  onClick,
+}) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `empty-slot-${slotNum}`,
+    data: {
+      slotNumber: slotNum,
+    },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`transition-all duration-200 ${
+        isOver ? 'scale-105 ring-2 ring-blue-400' : ''
+      }`}
+    >
+      <EmptySlot slotNum={slotNum} onClick={onClick} />
+    </div>
+  );
+};
+
+const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
+  breakers,
+  mainServiceLimit,
+  mainBreakerTripped,
+  mainBreakerManualOff,
+  selectedBreakerId,
+  onToggleMainPower,
+  onChangeMainLimit,
+  onSelectBreaker,
+  onToggleBreaker,
+  onDeleteBreaker,
+  onAddBreaker,
+  onMoveBreaker,
+}) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
+  const [activeBreaker, setActiveBreaker] = useState<Breaker | null>(null);
+
+  // Configure sensors for drag detection
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required before drag starts
+      },
+    })
+  );
+
+  const handleEmptySlotClick = useCallback((slotNum: number) => {
+    setSelectedSlot(slotNum);
+    setModalOpen(true);
+  }, []);
+
+  const handleModalSelect = useCallback(
+    (type: 'single' | 'double') => {
+      if (selectedSlot !== null) {
+        onAddBreaker(selectedSlot, type);
+      }
+    },
+    [selectedSlot, onAddBreaker]
+  );
+
+  const handleModalClose = useCallback(() => {
+    setModalOpen(false);
+    setSelectedSlot(null);
+  }, []);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    const breaker = breakers.find(b => b.id === event.active.id);
+    setActiveBreaker(breaker || null);
+  }, [breakers]);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveBreaker(null);
+
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    // Get the target slot number from the over element
+    const overId = over.id as string;
+    const overData = over.data.current;
+
+    let targetSlot: number;
+
+    if (overId.startsWith('empty-slot-')) {
+      // Dropped on an empty slot
+      targetSlot = parseInt(overId.replace('empty-slot-', ''), 10);
+    } else if (overData?.slotNumber) {
+      // Dropped on another breaker - swap positions
+      targetSlot = overData.slotNumber;
+    } else {
+      return;
+    }
+
+    onMoveBreaker(active.id as string, targetSlot);
+  }, [onMoveBreaker]);
+
+  const renderPanelSlots = () => {
+    const leftCol: React.ReactNode[] = [];
+    const rightCol: React.ReactNode[] = [];
+    const totalSlots = SLOTS_MAP[mainServiceLimit];
+
+    for (let i = 1; i <= totalSlots; i++) {
+      const isRight = i % 2 === 0;
+      const col = isRight ? rightCol : leftCol;
+      const occupant = breakers.find(b => b.slots.includes(i));
+
+      if (occupant) {
+        if (occupant.slots[0] === i) {
+          col.push(
+            <div
+              key={i}
+              className={`relative w-full ${
+                occupant.slots.length > 1 ? 'h-[6.25rem]' : 'h-12'
+              } mb-1`}
+            >
+              <DraggableBreaker
+                breaker={occupant}
+                slotNumber={i}
+                isRightSide={isRight}
+                isSelected={selectedBreakerId === occupant.id}
+                onSelect={() => onSelectBreaker(occupant.id)}
+                onToggle={() => onToggleBreaker(occupant.id)}
+                onDelete={() => onDeleteBreaker(occupant.id)}
+              />
+            </div>
+          );
+        }
+      } else {
+        col.push(
+          <div key={i} className="w-full h-12 mb-1 p-0.5">
+            <DroppableEmptySlot
+              slotNum={i}
+              onClick={() => handleEmptySlotClick(i)}
+            />
+          </div>
+        );
+      }
+    }
+
+    return { leftCol, rightCol };
+  };
+
+  const { leftCol, rightCol } = renderPanelSlots();
+
+  return (
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="w-96 bg-gray-200 flex flex-col items-center p-4 overflow-y-auto border-r-4 border-gray-700 shadow-2xl relative panel-bg">
+        <MainBreaker
+          isOn={!mainBreakerManualOff}
+          isTripped={mainBreakerTripped}
+          limit={mainServiceLimit}
+          onToggle={onToggleMainPower}
+          onChangeLimit={onChangeMainLimit}
+        />
+
+        <div className="bg-black p-2 pb-4 rounded w-full max-w-xs shadow-inner flex gap-1">
+          <div className="flex-1 flex flex-col">{leftCol}</div>
+          <div className="w-4 bg-gray-800 border-x border-gray-700 relative" />
+          <div className="flex-1 flex flex-col">{rightCol}</div>
+        </div>
+
+        <BreakerTypeModal
+          isOpen={modalOpen}
+          slotNumber={selectedSlot ?? 0}
+          onSelect={handleModalSelect}
+          onClose={handleModalClose}
+        />
+      </div>
+
+      <DragOverlay>
+        {activeBreaker ? (
+          <div className="opacity-90 rotate-2 scale-105">
+            <BreakerModule
+              breaker={activeBreaker}
+              slotNumber={activeBreaker.slots[0]}
+              isRightSide={activeBreaker.slots[0] % 2 === 0}
+              isSelected={true}
+              onSelect={() => {}}
+              onToggle={() => {}}
+              onDelete={() => {}}
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
+  );
+};
+
+export default ElectricalPanel;
