@@ -72,10 +72,13 @@ jobs:
           aws s3 cp dist/index.html s3://${{ secrets.AWS_S3_BUCKET }}/index.html \
             --cache-control "public, max-age=0, must-revalidate"
 
-      - name: Invalidate CloudFront cache (optional)
-        if: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID != '' }}
+      # Optional: Invalidate CloudFront cache
+      # To enable: add AWS_CLOUDFRONT_DISTRIBUTION_ID secret
+      - name: Invalidate CloudFront cache
+        env:
+          DISTRIBUTION_ID: ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }}
+        if: env.DISTRIBUTION_ID != ''
         run: |
           aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.AWS_CLOUDFRONT_DISTRIBUTION_ID }} \
+            --distribution-id "$DISTRIBUTION_ID" \
             --paths "/*"
-        continue-on-error: true
