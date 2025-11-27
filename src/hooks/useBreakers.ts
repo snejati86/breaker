@@ -66,7 +66,7 @@ export const useBreakers = (
       runs: [[{ id: generateId(), type: 'outlet', devices: [], grounded: true, temperature: 75 }]]
     }]);
     setSelectedBreakerId(newId);
-  }, [breakers, mainServiceLimit]);
+  }, [breakers, mainServiceLimit, notify]);
 
   const updateBreakerRating = useCallback((id: string, newRating: number) => {
     const totalSlots = SLOTS_MAP[mainServiceLimit];
@@ -106,7 +106,7 @@ export const useBreakers = (
         );
       }
     });
-  }, [mainServiceLimit]);
+  }, [mainServiceLimit, notify]);
 
   const deleteBreaker = useCallback((id: string) => {
     setBreakers(prev => {
