@@ -148,13 +148,31 @@ npm run test:run
 # 4. Confirm tests pass
 npm run test:run
 
-# 5. Refactor if needed (keep tests green)
+# 5. Verify production build works
+npm run build
 
-# 6. Add E2E test if it's a user-facing feature
+# 6. Refactor if needed (keep tests green AND build passing)
+
+# 7. Add E2E test if it's a user-facing feature
 # Create test in e2e/
 
-# 7. Run E2E to verify
+# 8. Run E2E to verify
 npm run test:e2e
+```
+
+### Validation Requirements
+
+**IMPORTANT: After every test run, also run `npm run build` to ensure production builds succeed.**
+
+This catches:
+- TypeScript errors not caught by tests
+- Import/export issues
+- Tree-shaking problems
+- Build-time optimizations that may fail
+
+```bash
+# Always run both after making changes:
+npm run test:run && npm run build
 ```
 
 ## Code Quality Standards
@@ -258,3 +276,33 @@ When changing component behavior (e.g., removing a button, changing interaction 
 2. Then update the component
 3. Run tests to verify the new behavior works
 4. This ensures tests document the intended behavior, not just pass
+
+### CSS Overflow Clipping Pitfall
+**CRITICAL:** Custom CSS tooltips/popups positioned with `absolute` will be clipped by parent containers with `overflow: hidden`, `overflow: auto`, or `overflow: scroll`.
+
+**What happened:** A custom tooltip was positioned with `-top-8` (above the element), but the parent had `overflow-y-auto`. The tooltip existed in the DOM but was visually invisible due to clipping.
+
+**Why tests didn't catch it:**
+- Unit tests only check DOM presence, not visual visibility
+- Playwright's accessibility snapshot shows elements exist even when clipped
+- Neither approach tests if CSS `overflow` clips content
+
+**The fix:** Use native browser features like the `title` attribute for tooltips instead of custom CSS tooltips. They:
+- Always work regardless of overflow settings
+- Are accessible by default
+- Don't require complex z-index or positioning
+
+```typescript
+// ❌ Wrong - custom tooltip can be clipped by overflow
+<span className="relative group">
+  <span className="truncate">{text}</span>
+  <span className="absolute -top-8 opacity-0 group-hover:opacity-100">
+    {text}
+  </span>
+</span>
+
+// ✅ Correct - native title always works
+<span className="truncate" title={text}>{text}</span>
+```
+
+**Testing visual rendering:** After implementing UI features, ALWAYS manually verify in the browser or use Playwright screenshots to confirm visual appearance, not just DOM presence.

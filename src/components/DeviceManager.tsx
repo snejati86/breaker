@@ -208,7 +208,10 @@ const DeviceManager: React.FC<DeviceManagerProps> = ({
                     aria-hidden="true"
                   />
                 </button>
-                <span className="text-sm md:text-xs font-medium truncate text-white" title={device.name}>
+                <span
+                  className="text-sm md:text-xs font-medium truncate text-white block min-w-0"
+                  title={device.name}
+                >
                   {device.name}
                 </span>
               </div>

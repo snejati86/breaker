@@ -6,6 +6,7 @@ interface BreakerModuleProps {
   slotNumber: number;
   isRightSide: boolean;
   isSelected: boolean;
+  currentLoad?: number; // Current load in amps
   onSelect: () => void;
   onToggle: () => void;
   onDelete: () => void;
@@ -16,6 +17,7 @@ const BreakerModule: React.FC<BreakerModuleProps> = ({
   slotNumber,
   isRightSide,
   isSelected,
+  currentLoad = 0,
   onSelect,
   onToggle,
   onDelete,
@@ -23,6 +25,9 @@ const BreakerModule: React.FC<BreakerModuleProps> = ({
   const isDoublePole = breaker.slots.length > 1;
   const heightClass = isDoublePole ? "h-[6.25rem]" : "h-12";
   const label = breaker.name || `Circuit ${slotNumber}`;
+  const loadPercentage = (currentLoad / breaker.rating) * 100;
+  const isOverloaded = loadPercentage > 100;
+  const isWarning = loadPercentage > 80;
 
   return (
     <div
@@ -60,13 +65,20 @@ const BreakerModule: React.FC<BreakerModuleProps> = ({
         <div
           className={`absolute ${
             isRightSide ? 'right-2 text-right' : 'left-2 text-left'
-          } top-1 bottom-1 w-16 flex flex-col justify-center px-1`}
+          } top-1 bottom-1 w-20 flex flex-col justify-center px-1`}
         >
-          <div className="text-xs text-apple-gray-1 leading-tight truncate w-full">
+          <div className="text-xs text-apple-gray-1 leading-tight truncate w-full" title={label}>
             {label}
           </div>
-          <div className="text-xs font-bold text-white">
-            {breaker.rating}A
+          <div className="flex items-baseline gap-1">
+            <span className={`text-xs font-bold ${
+              isOverloaded ? 'text-apple-red' : isWarning ? 'text-apple-orange' : 'text-apple-green'
+            }`}>
+              {currentLoad > 0 ? currentLoad.toFixed(1) : '0'}
+            </span>
+            <span className="text-xs text-apple-gray-1">
+              /{breaker.rating}A
+            </span>
           </div>
         </div>
 

@@ -38,7 +38,7 @@ describe('BreakerModule', () => {
       render(<BreakerModule {...defaultProps} />);
 
       expect(screen.getByText('Kitchen')).toBeInTheDocument();
-      expect(screen.getByText('20A')).toBeInTheDocument();
+      expect(screen.getByText('/20A')).toBeInTheDocument();
     });
 
     it('should show default label when breaker has no name', () => {
@@ -56,7 +56,7 @@ describe('BreakerModule', () => {
 
     it('should render different ratings correctly', () => {
       const { rerender } = render(<BreakerModule {...defaultProps} />);
-      expect(screen.getByText('20A')).toBeInTheDocument();
+      expect(screen.getByText('/20A')).toBeInTheDocument();
 
       rerender(
         <BreakerModule
@@ -64,7 +64,20 @@ describe('BreakerModule', () => {
           breaker={{ ...mockBreaker, rating: 30 }}
         />
       );
-      expect(screen.getByText('30A')).toBeInTheDocument();
+      expect(screen.getByText('/30A')).toBeInTheDocument();
+    });
+
+    it('should display current load with color coding', () => {
+      const { rerender } = render(<BreakerModule {...defaultProps} currentLoad={5} />);
+      expect(screen.getByText('5.0')).toBeInTheDocument();
+
+      // Warning state (>80%)
+      rerender(<BreakerModule {...defaultProps} currentLoad={17} />);
+      expect(screen.getByText('17.0')).toHaveClass('text-apple-orange');
+
+      // Overloaded state (>100%)
+      rerender(<BreakerModule {...defaultProps} currentLoad={25} />);
+      expect(screen.getByText('25.0')).toHaveClass('text-apple-red');
     });
   });
 

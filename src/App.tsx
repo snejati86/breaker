@@ -370,6 +370,7 @@ function App() {
             mainServiceLimit={mainServiceLimit}
             mainBreakerTripped={mainBreakerTripped}
             mainBreakerManualOff={mainBreakerManualOff}
+            mainPowerOn={mainPowerOn}
             selectedBreakerId={selectedBreakerId}
             onToggleMainPower={toggleMainPower}
             onChangeMainLimit={handleMainLimitChange}

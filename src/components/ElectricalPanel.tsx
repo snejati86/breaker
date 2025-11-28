@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -13,6 +13,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { Breaker } from '../types';
 import { SLOTS_MAP } from '../constants/breakers';
+import { calculateBreakerLoad } from '../utils/calculations';
 import MainBreaker from './MainBreaker';
 import BreakerModule from './BreakerModule';
 import EmptySlot from './EmptySlot';
@@ -23,6 +24,7 @@ interface ElectricalPanelProps {
   mainServiceLimit: number;
   mainBreakerTripped: boolean;
   mainBreakerManualOff: boolean;
+  mainPowerOn: boolean;
   selectedBreakerId: string | null;
   onToggleMainPower: () => void;
   onChangeMainLimit: (limit: number) => void;
@@ -39,6 +41,7 @@ interface DraggableBreakerProps {
   slotNumber: number;
   isRightSide: boolean;
   isSelected: boolean;
+  currentLoad: number;
   onSelect: () => void;
   onToggle: () => void;
   onDelete: () => void;
@@ -49,6 +52,7 @@ const DraggableBreaker: React.FC<DraggableBreakerProps> = ({
   slotNumber,
   isRightSide,
   isSelected,
+  currentLoad,
   onSelect,
   onToggle,
   onDelete,
@@ -82,6 +86,7 @@ const DraggableBreaker: React.FC<DraggableBreakerProps> = ({
         slotNumber={slotNumber}
         isRightSide={isRightSide}
         isSelected={isSelected}
+        currentLoad={currentLoad}
         onSelect={onSelect}
         onToggle={onToggle}
         onDelete={onDelete}
@@ -124,6 +129,7 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
   mainServiceLimit,
   mainBreakerTripped,
   mainBreakerManualOff,
+  mainPowerOn,
   selectedBreakerId,
   onToggleMainPower,
   onChangeMainLimit,
@@ -136,6 +142,15 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [activeBreaker, setActiveBreaker] = useState<Breaker | null>(null);
+
+  // Calculate current load for each breaker
+  const breakerLoads = useMemo(() => {
+    const loads: Record<string, number> = {};
+    breakers.forEach(breaker => {
+      loads[breaker.id] = calculateBreakerLoad(breaker, mainPowerOn);
+    });
+    return loads;
+  }, [breakers, mainPowerOn]);
 
   // Configure sensors for drag detection
   const sensors = useSensors(
@@ -216,6 +231,7 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
                 slotNumber={i}
                 isRightSide={isRight}
                 isSelected={selectedBreakerId === occupant.id}
+                currentLoad={breakerLoads[occupant.id] || 0}
                 onSelect={() => onSelectBreaker(occupant.id)}
                 onToggle={() => onToggleBreaker(occupant.id)}
                 onDelete={() => onDeleteBreaker(occupant.id)}
@@ -281,6 +297,7 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
               slotNumber={activeBreaker.slots[0]}
               isRightSide={activeBreaker.slots[0] % 2 === 0}
               isSelected={true}
+              currentLoad={breakerLoads[activeBreaker.id] || 0}
               onSelect={() => {}}
               onToggle={() => {}}
               onDelete={() => {}}

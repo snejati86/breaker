@@ -95,6 +95,7 @@ describe('ElectricalPanel', () => {
     mainServiceLimit: 100,
     mainBreakerTripped: false,
     mainBreakerManualOff: false,
+    mainPowerOn: true,
     selectedBreakerId: null,
     onToggleMainPower: vi.fn(),
     onChangeMainLimit: vi.fn(),

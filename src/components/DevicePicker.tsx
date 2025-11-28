@@ -256,8 +256,8 @@ const DevicePicker: React.FC<DevicePickerProps> = ({
         onMouseEnter={() => setHighlightedIndex(index)}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <i className={`fas ${device.icon} w-5 text-center text-apple-gray-1`} aria-hidden="true" />
-          <span className="font-medium text-white truncate">{device.name}</span>
+          <i className={`fas ${device.icon} w-5 text-center text-apple-gray-1 flex-shrink-0`} aria-hidden="true" />
+          <span className="font-medium text-white truncate" title={device.name}>{device.name}</span>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <span
