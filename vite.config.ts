@@ -6,6 +6,9 @@ import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Base path for deployment at /breaker/
+  base: '/breaker/',
+
   plugins: [
     react(),
 

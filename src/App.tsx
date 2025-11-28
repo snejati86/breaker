@@ -261,47 +261,31 @@ function App() {
             </span>
           </div>
 
-          {/* Speed Selector */}
-          <label htmlFor="time-speed" className="sr-only">
-            Simulation speed
-          </label>
-          <select
-            id="time-speed"
-            value={timeSpeed}
-            onChange={(e) => setTimeSpeed(Number(e.target.value))}
-            className="bg-apple-bg-tertiary border border-apple-separator rounded-apple text-xs px-3 py-2 hidden md:block text-white focus:border-apple-blue focus:ring-1 focus:ring-apple-blue transition-all"
-            aria-label="Simulation speed multiplier"
-          >
-            <option value="1">1x Speed</option>
-            <option value="10">10x Speed</option>
-            <option value="50">50x Speed</option>
-          </select>
-
           {/* Action Buttons */}
-          <nav aria-label="Panel actions" className="flex gap-2">
+          <nav aria-label="Panel actions" className="flex gap-1 md:gap-2">
             <button
               onClick={handleSavePanel}
               disabled={isSaving}
-              className="px-4 py-2 bg-apple-bg-tertiary hover:bg-apple-gray-3 rounded-apple text-xs font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-apple-separator hover:border-apple-gray-2"
+              className="p-2 md:px-4 md:py-2 bg-apple-bg-tertiary hover:bg-apple-gray-3 rounded-apple text-xs font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed border border-apple-separator hover:border-apple-gray-2"
               aria-label="Save panel configuration"
             >
               <i
-                className={`fas ${isSaving ? 'fa-spinner fa-spin' : 'fa-arrow-down-to-bracket'} mr-2`}
+                className={`fas ${isSaving ? 'fa-spinner fa-spin' : 'fa-arrow-down-to-bracket'}`}
                 aria-hidden="true"
               />
-              {isSaving ? 'Saving...' : 'Save'}
+              <span className="hidden md:inline ml-2">{isSaving ? 'Saving...' : 'Save'}</span>
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
-              className="px-4 py-2 bg-apple-blue hover:bg-blue-500 rounded-apple text-xs font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 md:px-4 md:py-2 bg-apple-blue hover:bg-blue-500 rounded-apple text-xs font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label={isLoading ? 'Loading panel configuration' : 'Open panel configuration file'}
             >
               <i
-                className={`fas ${isLoading ? 'fa-spinner fa-spin' : 'fa-folder-open'} mr-2`}
+                className={`fas ${isLoading ? 'fa-spinner fa-spin' : 'fa-folder-open'}`}
                 aria-hidden="true"
               />
-              {isLoading ? 'Loading...' : 'Open'}
+              <span className="hidden md:inline ml-2">{isLoading ? 'Loading...' : 'Open'}</span>
             </button>
             <input
               type="file"
@@ -314,31 +298,82 @@ function App() {
           </nav>
         </div>
 
-        {/* Mobile Tab Navigation */}
-        <nav className="flex md:hidden w-full bg-apple-bg-secondary rounded-apple p-1" aria-label="View selection">
-          <button
-            onClick={() => setMobileView('panel')}
-            className={`flex-1 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${
-              mobileView === 'panel'
-                ? 'bg-apple-bg-tertiary text-white shadow-apple-sm'
-                : 'text-apple-gray-1 hover:text-white'
-            }`}
+        {/* Mobile Controls */}
+        <div className="flex md:hidden w-full gap-2 flex-col">
+          {/* Panel Selector & Speed - Mobile */}
+          <div className="flex gap-2">
+            <select
+              value={selectedPanelId || ''}
+              onChange={(e) => selectPanel(e.target.value)}
+              className="flex-1 bg-apple-bg-tertiary border border-apple-separator rounded-apple text-xs px-3 py-2 text-white focus:border-apple-blue focus:ring-1 focus:ring-apple-blue transition-all"
+              aria-label="Select panel"
+            >
+              {panels.map((panel) => (
+                <option key={panel.id} value={panel.id}>
+                  {panel.name} ({panel.mainServiceLimit}A)
+                </option>
+              ))}
+            </select>
+            <select
+              value={timeSpeed}
+              onChange={(e) => setTimeSpeed(Number(e.target.value))}
+              className="bg-apple-bg-tertiary border border-apple-separator rounded-apple text-xs px-3 py-2 text-white focus:border-apple-blue focus:ring-1 focus:ring-apple-blue transition-all"
+              aria-label="Simulation speed"
+            >
+              <option value="1">1x</option>
+              <option value="10">10x</option>
+              <option value="50">50x</option>
+            </select>
+            <button
+              onClick={addPanel}
+              className="p-2 bg-apple-green hover:brightness-110 rounded-apple text-xs font-medium transition-all active:scale-95"
+              aria-label="Add new panel"
+            >
+              <i className="fas fa-plus" aria-hidden="true" />
+            </button>
+          </div>
+          {/* View Tabs - Mobile */}
+          <nav className="flex w-full bg-apple-bg-secondary rounded-apple p-1" aria-label="View selection">
+            <button
+              onClick={() => setMobileView('panel')}
+              className={`flex-1 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+                mobileView === 'panel'
+                  ? 'bg-apple-bg-tertiary text-white shadow-apple-sm'
+                  : 'text-apple-gray-1 hover:text-white'
+              }`}
+            >
+              <i className="fas fa-th mr-2" aria-hidden="true" />
+              Panel
+            </button>
+            <button
+              onClick={() => setMobileView('editor')}
+              className={`flex-1 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${
+                mobileView === 'editor'
+                  ? 'bg-apple-bg-tertiary text-white shadow-apple-sm'
+                  : 'text-apple-gray-1 hover:text-white'
+              }`}
+            >
+              <i className="fas fa-sliders mr-2" aria-hidden="true" />
+              Editor {activeBreaker ? `(${activeBreaker.name})` : ''}
+            </button>
+          </nav>
+        </div>
+
+        {/* Desktop Speed Selector */}
+        <div className="hidden md:flex items-center gap-4">
+          <span className="text-xs text-apple-gray-1">Simulation speed</span>
+          <select
+            id="time-speed"
+            value={timeSpeed}
+            onChange={(e) => setTimeSpeed(Number(e.target.value))}
+            className="bg-apple-bg-tertiary border border-apple-separator rounded-apple text-xs px-3 py-2 text-white focus:border-apple-blue focus:ring-1 focus:ring-apple-blue transition-all"
+            aria-label="Simulation speed multiplier"
           >
-            <i className="fas fa-th mr-2" aria-hidden="true" />
-            Panel
-          </button>
-          <button
-            onClick={() => setMobileView('editor')}
-            className={`flex-1 py-2.5 text-xs font-medium rounded-lg transition-all duration-200 ${
-              mobileView === 'editor'
-                ? 'bg-apple-bg-tertiary text-white shadow-apple-sm'
-                : 'text-apple-gray-1 hover:text-white'
-            }`}
-          >
-            <i className="fas fa-sliders mr-2" aria-hidden="true" />
-            Editor {activeBreaker ? `(${activeBreaker.name})` : ''}
-          </button>
-        </nav>
+            <option value="1">1x Speed</option>
+            <option value="10">10x Speed</option>
+            <option value="50">50x Speed</option>
+          </select>
+        </div>
       </header>
 
       {/* Main Content */}

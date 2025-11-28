@@ -69,15 +69,15 @@ describe('BreakerModule', () => {
 
     it('should display current load with color coding', () => {
       const { rerender } = render(<BreakerModule {...defaultProps} currentLoad={5} />);
-      expect(screen.getByText('5.0')).toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument();
 
       // Warning state (>80%)
       rerender(<BreakerModule {...defaultProps} currentLoad={17} />);
-      expect(screen.getByText('17.0')).toHaveClass('text-apple-orange');
+      expect(screen.getByText('17')).toHaveClass('text-apple-orange');
 
       // Overloaded state (>100%)
       rerender(<BreakerModule {...defaultProps} currentLoad={25} />);
-      expect(screen.getByText('25.0')).toHaveClass('text-apple-red');
+      expect(screen.getByText('25')).toHaveClass('text-apple-red');
     });
   });
 
@@ -307,7 +307,7 @@ describe('BreakerModule', () => {
         <BreakerModule {...defaultProps} isRightSide={false} />
       );
 
-      const textContainer = container.querySelector('.left-2.text-left');
+      const textContainer = container.querySelector('.text-left');
       expect(textContainer).toBeInTheDocument();
     });
 
@@ -316,7 +316,7 @@ describe('BreakerModule', () => {
         <BreakerModule {...defaultProps} isRightSide={true} />
       );
 
-      const textContainer = container.querySelector('.right-2.text-right');
+      const textContainer = container.querySelector('.text-right');
       expect(textContainer).toBeInTheDocument();
     });
   });

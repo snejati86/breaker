@@ -240,6 +240,36 @@ For device/item selection, prefer auto-adding on dropdown selection rather than 
 
 ## Known Gotchas
 
+### NEVER Use Fixed Pixel Values - Always Responsive Design
+**CRITICAL:** Never use hardcoded pixel (`px`) values in CSS/Tailwind. Always use responsive Tailwind classes with breakpoint modifiers.
+
+**Why it matters:** Fixed pixel values don't scale properly across different screen sizes, leading to broken layouts on mobile or large screens.
+
+**Rules:**
+1. Always use Tailwind's responsive prefixes: `sm:`, `md:`, `lg:`, `xl:`, `2xl:`
+2. Use relative units via Tailwind classes (rem-based): `w-4`, `h-6`, `p-2`, etc.
+3. For custom values, use Tailwind's bracket syntax with rem/em: `w-[2.5rem]` not `w-[40px]`
+4. Test all UI changes at mobile viewport (393x852 for iPhone 16)
+
+```typescript
+// ❌ Wrong - fixed pixel values
+<div className="w-[200px] h-[50px] translate-x-[16px]">
+
+// ❌ Wrong - only one size, not responsive
+<div className="w-8 h-5">
+
+// ✅ Correct - responsive with breakpoint modifiers
+<div className="w-10 h-6 md:w-12 md:h-7">
+
+// ✅ Correct - scales proportionally
+<div className="w-full md:w-1/2 lg:w-1/3">
+```
+
+**Toggle switches specifically:**
+- Track and knob sizes must scale together
+- Translation distances must match the track/knob math
+- Always calculate: `on_translation = track_width - knob_width - (2 × padding)`
+
 ### React Hook Dependency Arrays
 When using `useCallback` or `useMemo` with optional callback props (like `notify?: (msg: string) => void`), always include them in the dependency array even if optional. The React Compiler's `preserve-manual-memoization` rule will fail if inferred dependencies don't match declared ones.
 
@@ -306,3 +336,87 @@ When changing component behavior (e.g., removing a button, changing interaction 
 ```
 
 **Testing visual rendering:** After implementing UI features, ALWAYS manually verify in the browser or use Playwright screenshots to confirm visual appearance, not just DOM presence.
+
+## Deployment
+
+### Infrastructure
+This app is deployed to AWS:
+- **S3**: Static file hosting
+- **CloudFront**: CDN for global distribution
+- **Domain**: Served at `/breaker/` subdirectory (configured in `vite.config.ts` with `base: '/breaker/'`)
+
+### Deployment Commands
+
+```bash
+# 1. Run tests to ensure nothing is broken
+npm run test:run
+
+# 2. Build for production
+npm run build
+
+# 3. Deploy to S3 (note: deploy to the /breaker/ subdirectory!)
+aws s3 sync dist/ s3://YOUR_BUCKET_NAME/breaker/ --delete
+
+# 4. Invalidate CloudFront cache
+aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/breaker/*"
+```
+
+### Deployment Checklist
+1. ✅ All tests pass (`npm run test:run`)
+2. ✅ Build succeeds (`npm run build`)
+3. ✅ Deploy to correct S3 path (must include `/breaker/` subdirectory)
+4. ✅ Invalidate CloudFront cache
+5. ✅ Verify deployment in browser (use Playwright MCP for mobile testing)
+
+### Common Deployment Issues
+
+#### Assets Return 404
+**Symptom:** Page loads but is blank, console shows 404 errors for JS/CSS files.
+
+**Cause:** The app has `base: '/breaker/'` in `vite.config.ts`, so assets are requested at `/breaker/assets/...`. If you deploy to the S3 bucket root instead of the `/breaker/` subdirectory, the paths won't match.
+
+**Fix:** Always deploy to the subdirectory that matches the base path:
+```bash
+# ❌ Wrong - deploys to bucket root
+aws s3 sync dist/ s3://bucket-name --delete
+
+# ✅ Correct - deploys to /breaker/ subdirectory
+aws s3 sync dist/ s3://bucket-name/breaker/ --delete
+```
+
+#### Changes Not Visible After Deploy
+**Symptom:** Deployed new version but still seeing old content.
+
+**Cause:** CloudFront caches content aggressively.
+
+**Fix:** Invalidate the cache after every deployment:
+```bash
+aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/breaker/*"
+```
+
+Cache invalidation takes 1-5 minutes to propagate globally.
+
+### Verifying Deployment
+After deploying, use Playwright MCP to verify:
+
+1. **Navigate to production URL** and take a screenshot
+2. **Test mobile viewport** (393x852 for iPhone 16)
+3. **Check network requests** for any 404 errors
+4. **Test key user flows** (panel switching, breaker toggling, etc.)
+
+```bash
+# Example Playwright verification flow:
+# 1. Navigate to https://your-domain.com/breaker/
+# 2. Resize to mobile: 393x852
+# 3. Take screenshot
+# 4. Check for console errors
+# 5. Test panel selector dropdown
+# 6. Test breaker toggle functionality
+```
+
+### Mobile Responsiveness
+When making UI changes, always test on mobile viewport (iPhone 16: 393x852). Key areas that need mobile attention:
+- Header buttons (use icon-only on mobile)
+- Breaker toggle switches (smaller on mobile)
+- Panel selector dropdown (added for mobile since sidebar is hidden)
+- Simulation speed selector (compact version for mobile)
