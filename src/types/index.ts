@@ -24,6 +24,15 @@ export interface Breaker {
   runs: Component[][];
 }
 
+export interface Panel {
+  id: string;
+  name: string;
+  mainServiceLimit: number;
+  mainBreakerTripped: boolean;
+  mainBreakerManualOff: boolean;
+  breakers: Breaker[];
+}
+
 export interface SimulationState {
   totalLoad: number;
 }

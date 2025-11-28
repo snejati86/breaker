@@ -62,8 +62,8 @@ describe('EmptySlot', () => {
     it('should have semi-transparent dark background', () => {
       const { container } = render(<EmptySlot slotNum={1} onClick={() => {}} />);
 
-      // Uses bg-gray-700/50 for semi-transparent dark background
-      const slot = container.querySelector('[class*="bg-gray-700"]');
+      // Uses bg-apple-bg-tertiary/30 for semi-transparent dark background
+      const slot = container.querySelector('[class*="bg-apple-bg-tertiary"]');
       expect(slot).toBeInTheDocument();
     });
 

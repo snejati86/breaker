@@ -111,7 +111,7 @@ const DroppableEmptySlot: React.FC<DroppableEmptySlotProps> = ({
     <div
       ref={setNodeRef}
       className={`transition-all duration-200 ${
-        isOver ? 'scale-105 ring-2 ring-blue-400' : ''
+        isOver ? 'scale-105 ring-2 ring-apple-blue rounded-apple' : ''
       }`}
     >
       <EmptySlot slotNum={slotNum} onClick={onClick} />
@@ -141,7 +141,7 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8px movement required before drag starts
+        distance: 8,
       },
     })
   );
@@ -176,17 +176,14 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    // Get the target slot number from the over element
     const overId = over.id as string;
     const overData = over.data.current;
 
     let targetSlot: number;
 
     if (overId.startsWith('empty-slot-')) {
-      // Dropped on an empty slot
       targetSlot = parseInt(overId.replace('empty-slot-', ''), 10);
     } else if (overData?.slotNumber) {
-      // Dropped on another breaker - swap positions
       targetSlot = overData.slotNumber;
     } else {
       return;
@@ -250,7 +247,7 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="w-full md:w-96 bg-gray-200 flex flex-col items-center p-2 md:p-4 overflow-y-auto md:border-r-4 border-gray-700 shadow-2xl relative panel-bg">
+      <div className="w-full md:w-[420px] bg-apple-bg-elevated flex flex-col items-center p-4 md:p-6 overflow-y-auto border-r border-apple-separator">
         <MainBreaker
           isOn={!mainBreakerManualOff}
           isTripped={mainBreakerTripped}
@@ -259,10 +256,13 @@ const ElectricalPanel: React.FC<ElectricalPanelProps> = ({
           onChangeLimit={onChangeMainLimit}
         />
 
-        <div className="bg-black p-1.5 md:p-2 pb-3 md:pb-4 rounded w-full max-w-xs shadow-inner flex gap-0.5 md:gap-1">
-          <div className="flex-1 flex flex-col">{leftCol}</div>
-          <div className="w-4 bg-gray-800 border-x border-gray-700 relative" />
-          <div className="flex-1 flex flex-col">{rightCol}</div>
+        {/* Panel Box */}
+        <div className="panel-surface p-3 md:p-4 w-full max-w-sm">
+          <div className="bg-apple-bg flex gap-1 md:gap-2 p-2 rounded-apple-lg">
+            <div className="flex-1 flex flex-col">{leftCol}</div>
+            <div className="w-3 bg-apple-bg-tertiary rounded-full" />
+            <div className="flex-1 flex flex-col">{rightCol}</div>
+          </div>
         </div>
 
         <BreakerTypeModal

@@ -13,7 +13,7 @@ export const useSimulation = (
   mainServiceLimit: number,
   mainBreakerTripped: boolean,
   mainBreakerManualOff: boolean,
-  setMainBreakerTripped: React.Dispatch<React.SetStateAction<boolean>>,
+  setMainBreakerTripped: (value: boolean) => void,
   timeSpeed: number = 1
 ) => {
   const [simState, setSimState] = useState<SimulationState>({ totalLoad: 0 });

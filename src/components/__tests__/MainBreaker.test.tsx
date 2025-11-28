@@ -15,8 +15,9 @@ describe('MainBreaker', () => {
     it('should render main breaker with correct limit', () => {
       render(<MainBreaker {...defaultProps} />);
 
-      expect(screen.getByDisplayValue('200')).toBeInTheDocument();
-      expect(screen.getByText('Main Service Disconnect')).toBeInTheDocument();
+      const select = screen.getByRole('combobox', { name: /change service limit/i });
+      expect(select).toHaveValue('200');
+      expect(screen.getByText('Main Service')).toBeInTheDocument();
     });
 
     it('should display MAIN label', () => {
@@ -28,17 +29,18 @@ describe('MainBreaker', () => {
     it('should show all limit options in select', () => {
       render(<MainBreaker {...defaultProps} />);
 
-      expect(screen.getByRole('option', { name: '100' })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: '200' })).toBeInTheDocument();
-      expect(screen.getByRole('option', { name: '400' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: '100A' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: '200A' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: '400A' })).toBeInTheDocument();
     });
 
     it('should render with different limit values', () => {
       const { rerender } = render(<MainBreaker {...defaultProps} limit={100} />);
-      expect(screen.getByDisplayValue('100')).toBeInTheDocument();
+      const select = screen.getByRole('combobox', { name: /change service limit/i });
+      expect(select).toHaveValue('100');
 
       rerender(<MainBreaker {...defaultProps} limit={400} />);
-      expect(screen.getByDisplayValue('400')).toBeInTheDocument();
+      expect(select).toHaveValue('400');
     });
   });
 
@@ -59,37 +61,37 @@ describe('MainBreaker', () => {
     });
 
     it('should show handle in off position when tripped even if isOn is true', () => {
-      const { container } = render(
+      render(
         <MainBreaker {...defaultProps} isOn={true} isTripped={true} />
       );
 
-      // Handle should be in bottom position (off) when tripped
-      const handle = container.querySelector('.bottom-2.bg-red-500');
-      expect(handle).toBeInTheDocument();
+      // Handle should be in off position when tripped - toggle knob at translate-x-1
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveAttribute('aria-checked', 'false');
     });
   });
 
   describe('toggle interaction', () => {
     it('should call onToggle when breaker handle is clicked', () => {
       const onToggle = vi.fn();
-      const { container } = render(
+      render(
         <MainBreaker {...defaultProps} onToggle={onToggle} />
       );
 
-      const breakerHandle = container.querySelector('.w-10.h-16');
-      fireEvent.click(breakerHandle!);
+      const toggleButton = screen.getByRole('switch');
+      fireEvent.click(toggleButton);
 
       expect(onToggle).toHaveBeenCalledTimes(1);
     });
 
     it('should call onToggle when off', () => {
       const onToggle = vi.fn();
-      const { container } = render(
+      render(
         <MainBreaker {...defaultProps} isOn={false} onToggle={onToggle} />
       );
 
-      const breakerHandle = container.querySelector('.w-10.h-16');
-      fireEvent.click(breakerHandle!);
+      const toggleButton = screen.getByRole('switch');
+      fireEvent.click(toggleButton);
 
       expect(onToggle).toHaveBeenCalledTimes(1);
     });
@@ -100,7 +102,7 @@ describe('MainBreaker', () => {
       const onChangeLimit = vi.fn();
       render(<MainBreaker {...defaultProps} onChangeLimit={onChangeLimit} />);
 
-      const select = screen.getByDisplayValue('200');
+      const select = screen.getByRole('combobox', { name: /change service limit/i });
       fireEvent.change(select, { target: { value: '400' } });
 
       expect(onChangeLimit).toHaveBeenCalledWith(400);
@@ -110,7 +112,7 @@ describe('MainBreaker', () => {
       const onChangeLimit = vi.fn();
       render(<MainBreaker {...defaultProps} onChangeLimit={onChangeLimit} />);
 
-      const select = screen.getByDisplayValue('200');
+      const select = screen.getByRole('combobox', { name: /change service limit/i });
       fireEvent.change(select, { target: { value: '100' } });
 
       expect(onChangeLimit).toHaveBeenCalledWith(100);
@@ -120,7 +122,7 @@ describe('MainBreaker', () => {
       const onChangeLimit = vi.fn();
       render(<MainBreaker {...defaultProps} onChangeLimit={onChangeLimit} />);
 
-      const select = screen.getByDisplayValue('200');
+      const select = screen.getByRole('combobox', { name: /change service limit/i });
       fireEvent.change(select, { target: { value: '400' } });
 
       expect(typeof onChangeLimit.mock.calls[0][0]).toBe('number');
@@ -129,23 +131,25 @@ describe('MainBreaker', () => {
 
   describe('handle position', () => {
     it('should apply correct handle position when on', () => {
-      const { container } = render(
+      render(
         <MainBreaker {...defaultProps} isOn={true} isTripped={false} />
       );
 
-      // Handle in top position with green color when on
-      const handle = container.querySelector('.top-2.bg-green-500');
-      expect(handle).toBeInTheDocument();
+      // Toggle has aria-checked true and green background when on
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveAttribute('aria-checked', 'true');
+      expect(toggleButton).toHaveClass('bg-apple-green');
     });
 
     it('should apply correct handle position when off', () => {
-      const { container } = render(
+      render(
         <MainBreaker {...defaultProps} isOn={false} />
       );
 
-      // Handle in bottom position with red color when off
-      const handle = container.querySelector('.bottom-2.bg-red-500');
-      expect(handle).toBeInTheDocument();
+      // Toggle has aria-checked false and gray background when off
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveAttribute('aria-checked', 'false');
+      expect(toggleButton).toHaveClass('bg-apple-gray-3');
     });
   });
 
@@ -165,9 +169,12 @@ describe('MainBreaker', () => {
         </>
       );
 
-      expect(screen.getByDisplayValue('100')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('200')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('400')).toBeInTheDocument();
+      // Should render 3 main breakers with their respective limits
+      const selects = screen.getAllByRole('combobox', { name: /change service limit/i });
+      expect(selects).toHaveLength(3);
+      expect(selects[0]).toHaveValue('100');
+      expect(selects[1]).toHaveValue('200');
+      expect(selects[2]).toHaveValue('400');
     });
   });
 

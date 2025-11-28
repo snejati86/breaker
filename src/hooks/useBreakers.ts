@@ -1,44 +1,24 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type Dispatch, type SetStateAction } from 'react';
 import type { Breaker, Device } from '../types';
 import { BREAKER_SPECS, SLOTS_MAP } from '../constants/breakers';
 import { generateId } from '../utils/calculations';
 
-const initialBreakers: Breaker[] = [
-  {
-    id: 'b-1',
-    name: 'Kitchen',
-    rating: 20,
-    slots: [1],
-    thermalHeat: 0,
-    on: true,
-      runs: [[{ id: 'c-1', type: 'outlet', devices: [], grounded: true, temperature: 75 }]]
-  },
-  {
-    id: 'b-2',
-    name: 'Shed',
-    rating: 15,
-    slots: [2],
-    thermalHeat: 0,
-    on: true,
-      runs: [[{ id: 'c-2', type: 'switch', isOn: false, devices: [], grounded: true, temperature: 75 }]]
-  },
-  {
-    id: 'b-3',
-    name: 'Dryer (240V)',
-    rating: 30,
-    slots: [3, 5],
-    thermalHeat: 0,
-    on: true,
-      runs: [[{ id: 'c-3', type: 'outlet', devices: [], grounded: true, temperature: 75 }]]
-  }
-];
+export interface UseBreakersOptions {
+  breakers: Breaker[];
+  setBreakers: Dispatch<SetStateAction<Breaker[]>>;
+  mainServiceLimit: number;
+  notify?: (message: string) => void;
+}
 
-export const useBreakers = (
-  mainServiceLimit: number,
-  notify?: (message: string) => void
-) => {
-  const [breakers, setBreakers] = useState<Breaker[]>(initialBreakers);
-  const [selectedBreakerId, setSelectedBreakerId] = useState<string | null>('b-1');
+export const useBreakers = ({
+  breakers,
+  setBreakers,
+  mainServiceLimit,
+  notify,
+}: UseBreakersOptions) => {
+  const [selectedBreakerId, setSelectedBreakerId] = useState<string | null>(
+    breakers[0]?.id ?? null
+  );
 
   const addBreakerAtSlot = useCallback((slotNum: number, type: 'single' | 'double') => {
     const totalSlots = SLOTS_MAP[mainServiceLimit];
@@ -66,7 +46,7 @@ export const useBreakers = (
       runs: [[{ id: generateId(), type: 'outlet', devices: [], grounded: true, temperature: 75 }]]
     }]);
     setSelectedBreakerId(newId);
-  }, [breakers, mainServiceLimit, notify]);
+  }, [breakers, mainServiceLimit, notify, setBreakers]);
 
   const updateBreakerRating = useCallback((id: string, newRating: number) => {
     const totalSlots = SLOTS_MAP[mainServiceLimit];
@@ -106,7 +86,7 @@ export const useBreakers = (
         );
       }
     });
-  }, [mainServiceLimit, notify]);
+  }, [mainServiceLimit, notify, setBreakers]);
 
   const deleteBreaker = useCallback((id: string) => {
     setBreakers(prev => {
@@ -116,7 +96,7 @@ export const useBreakers = (
       }
       return filtered;
     });
-  }, [selectedBreakerId]);
+  }, [selectedBreakerId, setBreakers]);
 
   const toggleBreaker = useCallback((id: string) => {
     setBreakers(prev =>
@@ -124,7 +104,7 @@ export const useBreakers = (
         b.id === id ? { ...b, on: !b.on, thermalHeat: 0 } : b
       )
     );
-  }, []);
+  }, [setBreakers]);
 
   const updateBreakerName = useCallback((id: string, name: string) => {
     setBreakers(prev =>
@@ -132,7 +112,7 @@ export const useBreakers = (
         b.id === id ? { ...b, name } : b
       )
     );
-  }, []);
+  }, [setBreakers]);
 
   const addRun = useCallback((breakerId: string) => {
     setBreakers(prev =>
@@ -148,7 +128,7 @@ export const useBreakers = (
           : b
       )
     );
-  }, []);
+  }, [setBreakers]);
 
   const addComponent = useCallback((
     breakerId: string,
@@ -166,7 +146,7 @@ export const useBreakers = (
         return { ...b, runs: newRuns };
       })
     );
-  }, []);
+  }, [setBreakers]);
 
   const toggleSwitch = useCallback((
     breakerId: string,
@@ -184,7 +164,7 @@ export const useBreakers = (
         return { ...b, runs: newRuns };
       })
     );
-  }, []);
+  }, [setBreakers]);
 
   const toggleGround = useCallback((
     breakerId: string,
@@ -200,7 +180,7 @@ export const useBreakers = (
         return { ...b, runs: newRuns };
       })
     );
-  }, []);
+  }, [setBreakers]);
 
   const removeComponent = useCallback((
     breakerId: string,
@@ -219,7 +199,7 @@ export const useBreakers = (
         return { ...b, runs: newRuns };
       })
     );
-  }, []);
+  }, [setBreakers]);
 
   const addDevice = useCallback((
     breakerId: string,
@@ -249,7 +229,7 @@ export const useBreakers = (
         return { ...b, runs: newRuns };
       })
     );
-  }, []);
+  }, [setBreakers]);
 
   const toggleDevicePower = useCallback((
     breakerId: string,
@@ -271,7 +251,7 @@ export const useBreakers = (
         return { ...b, runs: newRuns };
       })
     );
-  }, []);
+  }, [setBreakers]);
 
   const removeDevice = useCallback((
     breakerId: string,
@@ -290,7 +270,7 @@ export const useBreakers = (
         return { ...b, runs: newRuns };
       })
     );
-  }, []);
+  }, [setBreakers]);
 
   const moveBreaker = useCallback((breakerId: string, targetSlot: number) => {
     const totalSlots = SLOTS_MAP[mainServiceLimit];
@@ -377,7 +357,7 @@ export const useBreakers = (
         b.id === breakerId ? { ...b, slots: targetSlots } : b
       );
     });
-  }, [mainServiceLimit, notify]);
+  }, [mainServiceLimit, notify, setBreakers]);
 
   return {
     breakers,

@@ -113,7 +113,7 @@ describe('ElectricalPanel', () => {
     it('should render electrical panel container', () => {
       const { container } = render(<ElectricalPanel {...defaultProps} />);
 
-      expect(container.querySelector('.panel-bg')).toBeInTheDocument();
+      expect(container.querySelector('.bg-apple-bg-elevated')).toBeInTheDocument();
     });
 
     it('should render MainBreaker component', () => {
@@ -399,7 +399,7 @@ describe('ElectricalPanel', () => {
     it('should render center divider', () => {
       const { container } = render(<ElectricalPanel {...defaultProps} />);
 
-      expect(container.querySelector('.w-4.bg-gray-800')).toBeInTheDocument();
+      expect(container.querySelector('.w-3.bg-apple-bg-tertiary')).toBeInTheDocument();
     });
   });
 

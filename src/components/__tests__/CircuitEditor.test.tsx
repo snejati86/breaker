@@ -57,7 +57,7 @@ describe('CircuitEditor', () => {
     it('should render circuit editor container', () => {
       const { container } = render(<CircuitEditor {...defaultProps} />);
 
-      expect(container.querySelector('.bg-gray-900')).toBeInTheDocument();
+      expect(container.querySelector('.bg-apple-bg-elevated')).toBeInTheDocument();
     });
 
     it('should render breaker name input with correct value', () => {
@@ -98,21 +98,23 @@ describe('CircuitEditor', () => {
     it('should render active load display', () => {
       render(<CircuitEditor {...defaultProps} />);
 
-      expect(screen.getByText('Active Load')).toBeInTheDocument();
-      expect(screen.getByText('5.5A')).toBeInTheDocument();
+      expect(screen.getByText('Load')).toBeInTheDocument();
+      // Load now shows current/capacity format (5.5 / 20A)
+      expect(screen.getByText('5.5')).toBeInTheDocument();
+      expect(screen.getByText(/\/ 20A/)).toBeInTheDocument();
     });
 
     it('should render breaker temperature display', () => {
       render(<CircuitEditor {...defaultProps} />);
 
-      expect(screen.getByText('Circuit Temp')).toBeInTheDocument();
+      expect(screen.getByText('Temp')).toBeInTheDocument();
       expect(screen.getByTestId('breaker-temp')).toBeInTheDocument();
     });
 
     it('should render new branch button', () => {
       render(<CircuitEditor {...defaultProps} />);
 
-      expect(screen.getByText('+ New Branch')).toBeInTheDocument();
+      expect(screen.getByText('New Branch')).toBeInTheDocument();
     });
   });
 
@@ -120,7 +122,7 @@ describe('CircuitEditor', () => {
     it('should not show thermal heat bar when thermalHeat is 0', () => {
       const { container } = render(<CircuitEditor {...defaultProps} />);
 
-      expect(container.querySelector('.bg-orange-500')).not.toBeInTheDocument();
+      expect(container.querySelector('.bg-apple-orange')).not.toBeInTheDocument();
     });
 
     it('should show thermal heat bar when thermalHeat > 0', () => {
@@ -129,7 +131,7 @@ describe('CircuitEditor', () => {
         <CircuitEditor {...defaultProps} breaker={breakerWithHeat} />
       );
 
-      const heatBar = container.querySelector('.bg-orange-500');
+      const heatBar = container.querySelector('.bg-apple-orange');
       expect(heatBar).toBeInTheDocument();
       expect(heatBar).toHaveStyle({ width: '50%' });
     });
@@ -183,7 +185,7 @@ describe('CircuitEditor', () => {
     it('should call onAddRun when new branch button is clicked', () => {
       render(<CircuitEditor {...defaultProps} />);
 
-      const newBranchButton = screen.getByText('+ New Branch');
+      const newBranchButton = screen.getByText('New Branch');
       fireEvent.click(newBranchButton);
 
       expect(defaultProps.onAddRun).toHaveBeenCalledWith('b1');
@@ -269,7 +271,8 @@ describe('CircuitEditor', () => {
         <CircuitEditor {...defaultProps} breaker={breakerWithSwitch} />
       );
 
-      const switchComponent = container.querySelector('.cursor-pointer.w-8.h-14');
+      // Switch component has cursor-pointer and w-10 h-16 in the new design
+      const switchComponent = container.querySelector('.cursor-pointer.w-10.h-16');
       fireEvent.click(switchComponent!);
 
       expect(defaultProps.onToggleSwitch).toHaveBeenCalledWith('b1', 0, 0);
@@ -289,7 +292,8 @@ describe('CircuitEditor', () => {
         <CircuitEditor {...defaultProps} breaker={breakerWithSwitch} />
       );
 
-      expect(container.querySelector('.bg-green-500.mb-4')).toBeInTheDocument();
+      // Switch knob moves up (-translate-y-1) and turns green when on
+      expect(container.querySelector('.bg-apple-green.-translate-y-1')).toBeInTheDocument();
     });
 
     it('should show switch in off state', () => {
@@ -306,7 +310,8 @@ describe('CircuitEditor', () => {
         <CircuitEditor {...defaultProps} breaker={breakerWithSwitch} />
       );
 
-      expect(container.querySelector('.bg-gray-400.mt-4')).toBeInTheDocument();
+      // Switch knob moves down (translate-y-1) and turns gray when off
+      expect(container.querySelector('.bg-apple-gray-2.translate-y-1')).toBeInTheDocument();
     });
   });
 
@@ -386,7 +391,8 @@ describe('CircuitEditor', () => {
         <CircuitEditor {...defaultProps} breaker={breakerWithNormalTemp} />
       );
 
-      expect(container.querySelector('.bg-emerald-900\\/30')).toBeInTheDocument();
+      // Apple design uses bg-apple-green/20 for normal temp badge
+      expect(container.querySelector('[class*="bg-apple-green"]')).toBeInTheDocument();
     });
 
     it('should apply warning color for elevated temperature', () => {
@@ -404,7 +410,8 @@ describe('CircuitEditor', () => {
         <CircuitEditor {...defaultProps} breaker={breakerWithWarmTemp} />
       );
 
-      expect(container.querySelector('.bg-orange-900\\/30')).toBeInTheDocument();
+      // Apple design uses bg-apple-orange/20 for warning temp badge
+      expect(container.querySelector('[class*="bg-apple-orange"]')).toBeInTheDocument();
     });
 
     it('should apply danger color for high temperature', () => {
@@ -422,7 +429,8 @@ describe('CircuitEditor', () => {
         <CircuitEditor {...defaultProps} breaker={breakerWithHotTemp} />
       );
 
-      expect(container.querySelector('.bg-red-900\\/40')).toBeInTheDocument();
+      // Apple design uses bg-apple-red/20 for danger temp badge
+      expect(container.querySelector('[class*="bg-apple-red"]')).toBeInTheDocument();
     });
   });
 
@@ -470,7 +478,7 @@ describe('CircuitEditor', () => {
 
       render(<CircuitEditor {...defaultProps} breaker={breakerWithEmptyRuns} />);
 
-      expect(screen.getByText('+ New Branch')).toBeInTheDocument();
+      expect(screen.getByText('New Branch')).toBeInTheDocument();
     });
   });
 });

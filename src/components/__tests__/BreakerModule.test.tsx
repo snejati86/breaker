@@ -88,21 +88,23 @@ describe('BreakerModule', () => {
   });
 
   describe('selection state', () => {
-    it('should show selected state with blue border', () => {
+    it('should show selected state with blue ring', () => {
       const { container } = render(
         <BreakerModule {...defaultProps} isSelected={true} />
       );
 
-      const breakerDiv = container.querySelector('.border-blue-400');
+      // Selected state uses ring-apple-blue
+      const breakerDiv = container.querySelector('.ring-apple-blue');
       expect(breakerDiv).toBeInTheDocument();
     });
 
-    it('should show black border when not selected', () => {
+    it('should show hover ring when not selected', () => {
       const { container } = render(
         <BreakerModule {...defaultProps} isSelected={false} />
       );
 
-      const breakerDiv = container.querySelector('.border-black');
+      // Non-selected has hover ring effect
+      const breakerDiv = container.querySelector('[class*="hover:ring"]');
       expect(breakerDiv).toBeInTheDocument();
     });
 
@@ -132,12 +134,12 @@ describe('BreakerModule', () => {
   describe('onToggle interaction', () => {
     it('should call onToggle when handle is clicked', () => {
       const onToggle = vi.fn();
-      const { container } = render(
+      render(
         <BreakerModule {...defaultProps} onToggle={onToggle} />
       );
 
-      const handle = container.querySelector('.w-8.h-10');
-      fireEvent.click(handle!);
+      const handle = screen.getByRole('switch');
+      fireEvent.click(handle);
 
       expect(onToggle).toHaveBeenCalledTimes(1);
     });
@@ -145,7 +147,7 @@ describe('BreakerModule', () => {
     it('should not trigger onSelect when handle is clicked', () => {
       const onSelect = vi.fn();
       const onToggle = vi.fn();
-      const { container } = render(
+      render(
         <BreakerModule
           {...defaultProps}
           onSelect={onSelect}
@@ -153,8 +155,8 @@ describe('BreakerModule', () => {
         />
       );
 
-      const handle = container.querySelector('.w-8.h-10');
-      fireEvent.click(handle!);
+      const handle = screen.getByRole('switch');
+      fireEvent.click(handle);
 
       expect(onToggle).toHaveBeenCalledTimes(1);
       expect(onSelect).not.toHaveBeenCalled();
@@ -171,12 +173,12 @@ describe('BreakerModule', () => {
 
     it('should call onDelete when delete button is clicked', () => {
       const onDelete = vi.fn();
-      const { container } = render(
+      render(
         <BreakerModule {...defaultProps} onDelete={onDelete} />
       );
 
-      const deleteButton = container.querySelector('button');
-      fireEvent.click(deleteButton!);
+      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      fireEvent.click(deleteButton);
 
       expect(onDelete).toHaveBeenCalledTimes(1);
     });
@@ -184,7 +186,7 @@ describe('BreakerModule', () => {
     it('should not trigger onSelect when delete button is clicked', () => {
       const onSelect = vi.fn();
       const onDelete = vi.fn();
-      const { container } = render(
+      render(
         <BreakerModule
           {...defaultProps}
           onSelect={onSelect}
@@ -192,8 +194,8 @@ describe('BreakerModule', () => {
         />
       );
 
-      const deleteButton = container.querySelector('button');
-      fireEvent.click(deleteButton!);
+      const deleteButton = screen.getByRole('button', { name: /delete/i });
+      fireEvent.click(deleteButton);
 
       expect(onDelete).toHaveBeenCalledTimes(1);
       expect(onSelect).not.toHaveBeenCalled();
@@ -202,60 +204,62 @@ describe('BreakerModule', () => {
 
   describe('handle position based on side', () => {
     it('should position handle correctly for left side when on', () => {
-      const { container } = render(
+      render(
         <BreakerModule {...defaultProps} isRightSide={false} />
       );
 
-      const handle = container.querySelector('.translate-x-3.bg-green-500');
-      expect(handle).toBeInTheDocument();
+      // iOS-style toggle uses translate-x-4 when on
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveAttribute('aria-checked', 'true');
     });
 
     it('should position handle correctly for left side when off', () => {
       const offBreaker = { ...mockBreaker, on: false };
-      const { container } = render(
+      render(
         <BreakerModule {...defaultProps} breaker={offBreaker} isRightSide={false} />
       );
 
-      const handle = container.querySelector('.-translate-x-2.bg-red-500');
-      expect(handle).toBeInTheDocument();
+      // Toggle has translate-x-0.5 when off
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveAttribute('aria-checked', 'false');
     });
 
     it('should position handle correctly for right side when on', () => {
-      const { container } = render(
+      render(
         <BreakerModule {...defaultProps} isRightSide={true} />
       );
 
-      const handle = container.querySelector('.-translate-x-3.bg-green-500');
-      expect(handle).toBeInTheDocument();
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveAttribute('aria-checked', 'true');
     });
 
     it('should position handle correctly for right side when off', () => {
       const offBreaker = { ...mockBreaker, on: false };
-      const { container } = render(
+      render(
         <BreakerModule {...defaultProps} breaker={offBreaker} isRightSide={true} />
       );
 
-      const handle = container.querySelector('.translate-x-2.bg-red-500');
-      expect(handle).toBeInTheDocument();
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveAttribute('aria-checked', 'false');
     });
   });
 
   describe('on/off visual feedback', () => {
-    it('should show green handle when breaker is on', () => {
-      const { container } = render(<BreakerModule {...defaultProps} />);
+    it('should show green toggle when breaker is on', () => {
+      render(<BreakerModule {...defaultProps} />);
 
-      const handle = container.querySelector('.bg-green-500');
-      expect(handle).toBeInTheDocument();
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveClass('bg-apple-green');
     });
 
-    it('should show red handle when breaker is off', () => {
+    it('should show gray toggle when breaker is off', () => {
       const offBreaker = { ...mockBreaker, on: false };
-      const { container } = render(
+      render(
         <BreakerModule {...defaultProps} breaker={offBreaker} />
       );
 
-      const handle = container.querySelector('.bg-red-500');
-      expect(handle).toBeInTheDocument();
+      const toggleButton = screen.getByRole('switch');
+      expect(toggleButton).toHaveClass('bg-apple-gray-3');
     });
   });
 
@@ -290,7 +294,7 @@ describe('BreakerModule', () => {
         <BreakerModule {...defaultProps} isRightSide={false} />
       );
 
-      const textContainer = container.querySelector('.left-1.text-left');
+      const textContainer = container.querySelector('.left-2.text-left');
       expect(textContainer).toBeInTheDocument();
     });
 
@@ -299,7 +303,7 @@ describe('BreakerModule', () => {
         <BreakerModule {...defaultProps} isRightSide={true} />
       );
 
-      const textContainer = container.querySelector('.right-1.text-right');
+      const textContainer = container.querySelector('.right-2.text-right');
       expect(textContainer).toBeInTheDocument();
     });
   });

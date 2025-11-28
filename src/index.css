@@ -1,3 +1,18 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+
+/* Force dark color scheme for native elements */
+:root {
+  color-scheme: dark;
+}
+
+/* Ensure select dropdowns have proper styling in all system themes */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #2C2C2E; /* apple-bg-secondary */
+  color: #FFFFFF;
+}

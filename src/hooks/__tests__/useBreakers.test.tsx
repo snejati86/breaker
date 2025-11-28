@@ -1,12 +1,49 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useBreakers } from '../useBreakers';
-import type { Device } from '../../types';
+import type { Breaker, Device } from '../../types';
+import { useState } from 'react';
+
+const initialBreakers: Breaker[] = [
+  {
+    id: 'b-1',
+    name: 'Kitchen',
+    rating: 20,
+    slots: [1],
+    thermalHeat: 0,
+    on: true,
+    runs: [[{ id: 'c-1', type: 'outlet', devices: [], grounded: true, temperature: 75 }]]
+  },
+  {
+    id: 'b-2',
+    name: 'Shed',
+    rating: 15,
+    slots: [2],
+    thermalHeat: 0,
+    on: true,
+    runs: [[{ id: 'c-2', type: 'switch', isOn: false, devices: [], grounded: true, temperature: 75 }]]
+  },
+  {
+    id: 'b-3',
+    name: 'Dryer (240V)',
+    rating: 30,
+    slots: [3, 5],
+    thermalHeat: 0,
+    on: true,
+    runs: [[{ id: 'c-3', type: 'outlet', devices: [], grounded: true, temperature: 75 }]]
+  }
+];
+
+// Helper to create a wrapper that provides breakers state
+const useBreakersWithState = (mainServiceLimit: number, notify?: (message: string) => void) => {
+  const [breakers, setBreakers] = useState<Breaker[]>(initialBreakers);
+  return useBreakers({ breakers, setBreakers, mainServiceLimit, notify });
+};
 
 describe('useBreakers', () => {
   describe('addDevice', () => {
     it('should add device when called once', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
       
       // Get initial breaker state
       const initialBreaker = result.current.breakers.find(b => b.id === 'b-1');
@@ -33,7 +70,7 @@ describe('useBreakers', () => {
     });
 
     it('should add different devices when called with different device objects', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
       
       // Create two different devices
       const device1: Device = {
@@ -66,7 +103,7 @@ describe('useBreakers', () => {
     });
 
     it('should add devices to the correct component in the correct run', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
       
       // First add another component to the first run
       act(() => {
@@ -97,7 +134,7 @@ describe('useBreakers', () => {
 
   describe('moveBreaker', () => {
     it('should move a single-pole breaker to an empty slot', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
 
       // Initially Kitchen is at slot 1
       const kitchenBreaker = result.current.breakers.find(b => b.id === 'b-1');
@@ -113,7 +150,7 @@ describe('useBreakers', () => {
     });
 
     it('should swap two single-pole breakers when moving to occupied slot', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
 
       // Kitchen at slot 1, Shed at slot 2
       expect(result.current.breakers.find(b => b.id === 'b-1')?.slots).toEqual([1]);
@@ -130,7 +167,7 @@ describe('useBreakers', () => {
     });
 
     it('should move a double-pole breaker to empty slots', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
 
       // Dryer at slots [3, 5]
       const dryerBreaker = result.current.breakers.find(b => b.id === 'b-3');
@@ -146,7 +183,7 @@ describe('useBreakers', () => {
     });
 
     it('should swap single-pole with double-pole when moving single to first slot of double', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
 
       // Kitchen at slot 1, Dryer at [3, 5]
       // Move Kitchen to slot 3
@@ -168,7 +205,7 @@ describe('useBreakers', () => {
 
     it('should not move breaker to out of bounds slot', () => {
       const notify = vi.fn();
-      const { result } = renderHook(() => useBreakers(200, notify));
+      const { result } = renderHook(() => useBreakersWithState(200, notify));
 
       // Try to move to slot 35 (max is 30 for 200A service)
       act(() => {
@@ -183,7 +220,7 @@ describe('useBreakers', () => {
 
     it('should not move double-pole breaker if second slot would be out of bounds', () => {
       const notify = vi.fn();
-      const { result } = renderHook(() => useBreakers(200, notify));
+      const { result } = renderHook(() => useBreakersWithState(200, notify));
 
       // Dryer is double-pole [3, 5]
       // Try to move to slot 29 (would need 29, 31 but max is 30)
@@ -198,7 +235,7 @@ describe('useBreakers', () => {
     });
 
     it('should handle moving to same slot (no-op)', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
 
       act(() => {
         result.current.moveBreaker('b-1', 1); // Already at slot 1
@@ -209,7 +246,7 @@ describe('useBreakers', () => {
     });
 
     it('should maintain column constraint (odd slots stay odd, even stay even)', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
 
       // Kitchen at slot 1 (left column - odd)
       // Move to slot 5 (also left column - odd)
@@ -230,7 +267,7 @@ describe('useBreakers', () => {
     });
 
     it('should return moveBreaker function', () => {
-      const { result } = renderHook(() => useBreakers(200));
+      const { result } = renderHook(() => useBreakersWithState(200));
       expect(typeof result.current.moveBreaker).toBe('function');
     });
   });

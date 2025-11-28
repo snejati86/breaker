@@ -20,17 +20,17 @@ interface CircuitEditorProps {
 }
 
 const getTemperatureTone = (temperature: number): string => {
-  if (temperature >= 200) return 'text-red-400';
-  if (temperature >= 140) return 'text-orange-300';
-  if (temperature >= 110) return 'text-amber-300';
-  return 'text-green-300';
+  if (temperature >= 200) return 'text-apple-red';
+  if (temperature >= 140) return 'text-apple-orange';
+  if (temperature >= 110) return 'text-apple-yellow';
+  return 'text-apple-green';
 };
 
 const getTemperatureBadgeClasses = (temperature: number): string => {
-  if (temperature >= 200) return 'bg-red-900/40 border border-red-700 text-red-100';
-  if (temperature >= 140) return 'bg-orange-900/30 border border-orange-700 text-orange-100';
-  if (temperature >= 110) return 'bg-amber-900/30 border border-amber-700 text-amber-100';
-  return 'bg-emerald-900/30 border border-emerald-700 text-emerald-100';
+  if (temperature >= 200) return 'bg-apple-red/20 border border-apple-red/50 text-apple-red';
+  if (temperature >= 140) return 'bg-apple-orange/20 border border-apple-orange/50 text-apple-orange';
+  if (temperature >= 110) return 'bg-apple-yellow/20 border border-apple-yellow/50 text-apple-yellow';
+  return 'bg-apple-green/20 border border-apple-green/50 text-apple-green';
 };
 
 const formatTemperature = (temperature: number): string => `${temperature.toFixed(0)}°F`;
@@ -58,88 +58,124 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
   const totalComponents = components.length;
   const showComponentTemp = totalComponents > 1;
 
+  const loadPercentage = (activeAmps / breaker.rating) * 100;
+  const getLoadColor = () => {
+    if (loadPercentage >= 100) return 'bg-apple-red';
+    if (loadPercentage >= 80) return 'bg-apple-orange';
+    if (loadPercentage >= 50) return 'bg-apple-yellow';
+    return 'bg-apple-blue';
+  };
+
   return (
-    <div className="flex-grow bg-gray-900 relative overflow-hidden flex flex-col w-full">
-      {/* Breaker Info Header */}
-      <div className="relative md:absolute top-0 md:top-4 left-0 md:left-6 z-10 p-3 md:p-4 bg-gray-800/80 md:rounded border-b md:border border-gray-600 backdrop-blur-sm w-full md:w-auto">
-        <h2 className="text-lg md:text-2xl font-bold text-white flex items-center gap-2 mb-2 flex-wrap">
-          <span className="bg-gray-700 px-2 py-1 rounded text-xs md:text-sm border border-gray-500 text-gray-300">
+    <div className="flex-grow bg-apple-bg-elevated relative overflow-hidden flex flex-col w-full">
+      {/* Breaker Info Header - Fixed Header Bar */}
+      <header className="sticky top-0 z-10 px-4 md:px-6 py-3 bg-apple-bg-elevated border-b border-apple-separator/50">
+        {/* Title row */}
+        <div className="flex items-baseline gap-3 mb-2">
+          <span className="text-sm text-white/50 font-medium">
             Slot {breaker.slots.join('+')}
           </span>
-          <input
-            className="bg-transparent border-b border-gray-600 focus:border-blue-500 outline-none flex-1 min-w-0 md:w-48 md:flex-none text-base md:text-2xl"
-            value={breaker.name}
-            onChange={(e) => onUpdateBreakerName(breaker.id, e.target.value)}
-          />
-        </h2>
+          <div className="relative group flex-1 max-w-xs">
+            <input
+              className="bg-transparent text-xl font-semibold text-white outline-none w-full border-b border-transparent hover:border-apple-separator focus:border-apple-blue transition-colors pr-6"
+              value={breaker.name}
+              onChange={(e) => onUpdateBreakerName(breaker.id, e.target.value)}
+              aria-label="Circuit name"
+            />
+            <i className="fas fa-pencil absolute right-0 top-1/2 -translate-y-1/2 text-xs text-apple-gray-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" aria-hidden="true" />
+          </div>
+        </div>
 
-        <div className="flex flex-wrap items-center gap-2 md:gap-4 text-sm text-gray-300">
-          <div className="flex items-center gap-1 md:gap-2 bg-gray-900 px-2 py-1 rounded border border-gray-600">
-            <span className="text-[10px] md:text-xs uppercase text-gray-500">Breaker Rating</span>
+        {/* Metrics row */}
+        <div className="flex flex-wrap items-center gap-4 md:gap-6">
+          {/* Rating - Interactive */}
+          <div className="flex items-center gap-2">
+            <label htmlFor={`breaker-rating-${breaker.id}`} className="text-xs uppercase tracking-wide text-white/60 font-medium">
+              Rating
+            </label>
             <select
-              className="bg-transparent font-bold text-amber-400 outline-none cursor-pointer text-sm md:text-base"
+              id={`breaker-rating-${breaker.id}`}
+              className="bg-apple-bg-secondary border border-apple-separator rounded-lg px-2 py-1 font-semibold text-apple-orange outline-none cursor-pointer text-base tabular-nums hover:border-apple-orange/50 transition-colors"
               value={breaker.rating}
               onChange={(e) => onUpdateBreakerRating(breaker.id, Number(e.target.value))}
+              aria-label={`Change breaker rating for ${breaker.name}`}
             >
               {Object.keys(BREAKER_SPECS).map(rating => (
-                <option key={rating} value={rating}>{rating}A</option>
+                <option key={rating} value={rating} className="bg-apple-bg-secondary text-white">{rating}A</option>
               ))}
             </select>
           </div>
 
-          <div className="flex items-center gap-1 md:gap-2">
-            <span className="text-[10px] md:text-xs uppercase text-gray-500">Active Load</span>
-            <span className="font-mono font-bold text-sm md:text-base">{activeAmps.toFixed(1)}A</span>
+          {/* Load - Status */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs uppercase tracking-wide text-white/60 font-medium">Load</span>
+            <span className="font-mono font-semibold text-white tabular-nums">
+              {activeAmps.toFixed(1)}
+              <span className="text-white/40 text-sm ml-0.5">/ {breaker.rating}A</span>
+            </span>
+            {/* Inline load bar */}
+            <div className="h-1.5 w-16 bg-apple-bg-tertiary rounded-full overflow-hidden">
+              <div
+                className={`h-full ${getLoadColor()} transition-all duration-300 rounded-full`}
+                style={{ width: `${Math.min(loadPercentage, 100)}%` }}
+              />
+            </div>
           </div>
 
+          {/* Temp - Status */}
           <div
-            className="flex items-center gap-1 md:gap-2"
+            className="flex items-center gap-2"
             title="Maximum temperature across all components on this circuit"
           >
-            <span className="text-[10px] md:text-xs uppercase text-gray-500">Circuit Temp</span>
+            <span className="text-xs uppercase tracking-wide text-white/60 font-medium">Temp</span>
             <span
               data-testid="breaker-temp"
               data-temp-value={breakerTemperature.toFixed(2)}
-              className={`font-mono font-bold text-sm md:text-base ${getTemperatureTone(breakerTemperature)}`}
+              className={`font-mono font-semibold tabular-nums ${getTemperatureTone(breakerTemperature)} ${
+                breakerTemperature >= 140 ? 'animate-pulse' : ''
+              }`}
             >
               {formatTemperature(breakerTemperature)}
             </span>
           </div>
-        </div>
 
-        {breaker.thermalHeat > 0 && (
-          <div className="mt-2 w-full bg-gray-700 h-1 rounded overflow-hidden">
-            <div
-              className="h-full bg-orange-500 transition-all duration-300"
-              style={{ width: `${breaker.thermalHeat}%` }}
-            />
-          </div>
-        )}
-      </div>
+          {/* Thermal heat indicator (only when active) */}
+          {breaker.thermalHeat > 0 && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs uppercase tracking-wide text-apple-orange font-medium">Heat</span>
+              <div className="h-1.5 w-16 bg-apple-bg-tertiary rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-apple-orange transition-all duration-300 rounded-full"
+                  style={{ width: `${breaker.thermalHeat}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
 
       {/* Circuit Visualization */}
-      <div className="flex-grow overflow-auto p-4 md:p-10 md:pt-32">
-        <div className="flex flex-col gap-6 md:gap-12">
+      <div className="flex-grow overflow-auto p-4 md:p-8">
+        <div className="flex flex-col gap-6 md:gap-10">
           {breaker.runs.map((run, runIndex) => (
-            <div key={runIndex} className="flex flex-wrap md:flex-nowrap items-start md:items-center gap-2 md:gap-0">
-              <div className="hidden md:block w-16 h-1 bg-gray-600 relative" />
+            <div key={runIndex} className="flex flex-wrap md:flex-nowrap items-start md:items-center gap-3 md:gap-0">
+              <div className="hidden md:block w-12 h-0.5 bg-apple-gray-3 rounded-full" />
 
               {run.map((component, compIndex) => (
                 <div key={component.id} className="flex items-center w-full md:w-auto">
-                  <div className="relative w-full md:w-48 bg-gray-800 border border-gray-600 rounded p-3 shadow-lg group">
-                    <div className="flex justify-between text-xs text-gray-500 font-bold mb-2">
+                  <div className="relative w-full md:w-52 bg-apple-bg-secondary border border-apple-separator rounded-apple-xl p-4 shadow-apple group">
+                    <div className="flex justify-between text-xs text-apple-gray-1 font-semibold mb-3">
                       <span>{component.type.toUpperCase()}</span>
                       <button
                         onClick={() => onRemoveComponent(breaker.id, runIndex, compIndex)}
-                        className="hover:text-red-500 opacity-0 group-hover:opacity-100"
+                        className="hover:text-apple-red opacity-0 group-hover:opacity-100 transition-opacity"
                       >
                         <i className="fas fa-times" />
                       </button>
                     </div>
-                    
+
                     {/* Component Visualization */}
-                    <div className="bg-gray-300 rounded h-24 mb-2 flex items-center justify-center relative">
-                      {/* Only show component temp when multiple components exist */}
+                    <div className="bg-apple-bg-tertiary rounded-apple-lg h-24 mb-3 flex items-center justify-center relative border border-apple-separator">
                       {showComponentTemp && (
                         <div
                           data-testid="component-temp"
@@ -155,25 +191,25 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
                       {component.type === 'switch' ? (
                         <div
                           onClick={() => onToggleSwitch(breaker.id, runIndex, compIndex)}
-                          className="cursor-pointer w-8 h-14 bg-white border border-gray-400 rounded shadow flex items-center justify-center"
+                          className="cursor-pointer w-10 h-16 bg-white border border-apple-separator rounded-apple shadow-apple-sm flex items-center justify-center hover:shadow-apple transition-shadow"
                         >
                           <div
-                            className={`w-2 h-6 rounded ${
-                              component.isOn ? 'bg-green-500 mb-4' : 'bg-gray-400 mt-4'
+                            className={`w-2.5 h-7 rounded transition-all duration-200 ${
+                              component.isOn ? 'bg-apple-green -translate-y-1' : 'bg-apple-gray-2 translate-y-1'
                             }`}
                           />
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-1 scale-75">
-                          <div className="w-6 h-8 bg-white border border-gray-400 rounded-sm relative">
-                            <div className="absolute top-1 left-1.5 w-0.5 h-2 bg-black" />
-                            <div className="absolute top-1 right-1.5 w-0.5 h-2 bg-black" />
-                            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-black rounded-full" />
+                        <div className="flex flex-col gap-1.5 scale-90">
+                          <div className="w-7 h-9 bg-white border border-apple-separator rounded shadow-apple-sm relative">
+                            <div className="absolute top-1.5 left-2 w-0.5 h-2.5 bg-apple-bg rounded-full" />
+                            <div className="absolute top-1.5 right-2 w-0.5 h-2.5 bg-apple-bg rounded-full" />
+                            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-2 h-2 bg-apple-bg rounded-full" />
                           </div>
-                          <div className="w-6 h-8 bg-white border border-gray-400 rounded-sm relative">
-                            <div className="absolute top-1 left-1.5 w-0.5 h-2 bg-black" />
-                            <div className="absolute top-1 right-1.5 w-0.5 h-2 bg-black" />
-                            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-black rounded-full" />
+                          <div className="w-7 h-9 bg-white border border-apple-separator rounded shadow-apple-sm relative">
+                            <div className="absolute top-1.5 left-2 w-0.5 h-2.5 bg-apple-bg rounded-full" />
+                            <div className="absolute top-1.5 right-2 w-0.5 h-2.5 bg-apple-bg rounded-full" />
+                            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-2 h-2 bg-apple-bg rounded-full" />
                           </div>
                         </div>
                       )}
@@ -191,37 +227,38 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
                       onToggleGround={() => onToggleGround(breaker.id, runIndex, compIndex)}
                     />
                   </div>
-                  
-                  <div className="w-12 h-1 bg-gray-600" />
+
+                  <div className="hidden md:block w-8 h-0.5 bg-apple-gray-3 rounded-full" />
                 </div>
               ))}
-              
+
               {/* Add Component Buttons */}
-              <div className="flex flex-row md:flex-col gap-2 md:gap-1">
+              <div className="flex flex-row md:flex-col gap-2">
                 <button
                   onClick={() => onAddComponent(breaker.id, runIndex, 'outlet')}
-                  className="w-11 h-11 md:w-8 md:h-8 rounded-full bg-gray-700 border border-gray-500 flex items-center justify-center hover:bg-gray-600 active:bg-gray-500 text-sm md:text-xs"
+                  className="w-11 h-11 md:w-9 md:h-9 rounded-full bg-apple-bg-tertiary border border-apple-separator flex items-center justify-center hover:bg-apple-gray-3 active:scale-95 text-apple-gray-1 hover:text-white transition-all"
                   aria-label="Add outlet"
                 >
-                  <i className="fas fa-plug" />
+                  <i className="fas fa-plug text-sm" />
                 </button>
                 <button
                   onClick={() => onAddComponent(breaker.id, runIndex, 'switch')}
-                  className="w-11 h-11 md:w-8 md:h-8 rounded-full bg-purple-900 border border-purple-700 flex items-center justify-center hover:bg-purple-800 active:bg-purple-700 text-sm md:text-xs"
+                  className="w-11 h-11 md:w-9 md:h-9 rounded-full bg-apple-purple/20 border border-apple-purple/30 flex items-center justify-center hover:bg-apple-purple/30 active:scale-95 text-apple-purple transition-all"
                   aria-label="Add switch"
                 >
-                  <i className="fas fa-toggle-on" />
+                  <i className="fas fa-toggle-on text-sm" />
                 </button>
               </div>
             </div>
           ))}
-          
+
           {/* Add New Branch Button */}
           <button
             onClick={() => onAddRun(breaker.id)}
-            className="w-full md:w-32 py-3 md:py-2 border border-dashed border-gray-600 text-gray-500 text-sm md:text-xs hover:bg-gray-800 active:bg-gray-700 hover:text-white rounded"
+            className="w-full md:w-40 py-3 md:py-2.5 border border-dashed border-apple-separator text-apple-gray-1 text-sm font-medium hover:bg-apple-bg-tertiary active:scale-98 hover:text-white hover:border-apple-gray-2 rounded-apple-lg transition-all"
           >
-            + New Branch
+            <i className="fas fa-plus mr-2" />
+            New Branch
           </button>
         </div>
       </div>
