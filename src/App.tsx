@@ -227,7 +227,7 @@ function App() {
               <h1 className="text-sm md:text-base font-semibold text-white leading-tight">
                 {selectedPanel?.name || 'Panel Simulator'}
               </h1>
-              <span className="text-[10px] text-apple-gray-1 uppercase tracking-wider">
+              <span className="text-xs text-apple-gray-1 uppercase tracking-wider">
                 Circuit Manager
               </span>
             </div>
@@ -256,7 +256,7 @@ function App() {
             <span className="text-xs font-medium">
               {simState.totalLoad.toFixed(1)}A
             </span>
-            <span className="text-[10px] text-apple-gray-1">
+            <span className="text-xs text-apple-gray-1">
               / {mainServiceLimit}A
             </span>
           </div>
@@ -295,7 +295,7 @@ function App() {
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
               className="px-4 py-2 bg-apple-blue hover:bg-blue-500 rounded-apple text-xs font-medium transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Load panel configuration from file"
+              aria-label={isLoading ? 'Loading panel configuration' : 'Open panel configuration file'}
             >
               <i
                 className={`fas ${isLoading ? 'fa-spinner fa-spin' : 'fa-folder-open'} mr-2`}
@@ -396,7 +396,7 @@ function App() {
                   <span className="text-apple-gray-1">
                     {selectedPanel?.name}
                   </span>
-                  <i className="fas fa-chevron-right text-apple-gray-2 text-[10px]" aria-hidden="true" />
+                  <i className="fas fa-chevron-right text-apple-gray-1 text-xs" aria-hidden="true" />
                   <span className="text-white font-medium">
                     Slot {activeBreaker.slots.join(', ')}
                   </span>

@@ -3,7 +3,7 @@ import type { DeviceType } from '../constants/devices';
 // Environment variables - set in .env.local (see .env.example)
 const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 const MODEL_ID = import.meta.env.VITE_GEMINI_MODEL || 'gemini-2.0-flash';
-const FALLBACK_DEVICE: DeviceType = { name: '', watts: 100, icon: 'fa-question-circle' };
+const FALLBACK_DEVICE: DeviceType = { name: '', watts: 100, icon: 'fa-question-circle', category: 'other' };
 
 const normalizeWatts = (value: unknown, fallback = 100): number => {
   const watts = Number(value);
@@ -66,6 +66,7 @@ export const fetchCustomDeviceSpecs = async (query: string): Promise<DeviceType>
       name: parsed.name?.slice(0, 30) || query,
       watts: normalizeWatts(parsed.watts, fallback.watts),
       icon: parsed.icon ? `fa-${String(parsed.icon).replace(/^fa-/, '')}` : fallback.icon,
+      category: 'other',
     };
 
     withLogging('LLM parsed device', normalizedDevice);

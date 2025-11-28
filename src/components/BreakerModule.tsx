@@ -36,12 +36,16 @@ const BreakerModule: React.FC<BreakerModuleProps> = ({
           onSelect();
         }
       }}
-      aria-label={`${label} breaker, ${breaker.rating} amps, ${breaker.on ? 'on' : 'off'}. Press Enter to select.`}
+      aria-label={`${label} ${breaker.rating}A`}
+      aria-describedby={`breaker-desc-${breaker.id}`}
       className={`absolute w-full ${heightClass} p-0.5 z-10 cursor-pointer group transition-all focus-visible:ring-2 focus-visible:ring-apple-blue focus-visible:ring-offset-2 focus-visible:ring-offset-apple-gray-4 rounded-apple ${
         isSelected ? 'z-20' : ''
       }`}
       style={{ top: 0 }}
     >
+      <span id={`breaker-desc-${breaker.id}`} className="sr-only">
+        Breaker is {breaker.on ? 'on' : 'off'}. Press Enter to select.
+      </span>
       {/* Selection glow effect */}
       {isSelected && (
         <div className="absolute -inset-1 bg-apple-blue/20 rounded-apple-lg blur-sm" />
@@ -58,10 +62,10 @@ const BreakerModule: React.FC<BreakerModuleProps> = ({
             isRightSide ? 'right-2 text-right' : 'left-2 text-left'
           } top-1 bottom-1 w-16 flex flex-col justify-center px-1`}
         >
-          <div className="text-[9px] text-apple-gray-1 leading-tight truncate w-full">
+          <div className="text-xs text-apple-gray-1 leading-tight truncate w-full">
             {label}
           </div>
-          <div className="text-[11px] font-bold text-white">
+          <div className="text-xs font-bold text-white">
             {breaker.rating}A
           </div>
         </div>
@@ -98,7 +102,7 @@ const BreakerModule: React.FC<BreakerModuleProps> = ({
             e.stopPropagation();
             onDelete();
           }}
-          className="absolute -top-1.5 -right-1.5 bg-apple-red text-white w-5 h-5 rounded-full text-[9px] items-center justify-center hidden group-hover:flex shadow-apple-sm hover:brightness-110 transition-all"
+          className="absolute -top-1.5 -right-1.5 bg-apple-red text-white w-6 h-6 rounded-full text-xs items-center justify-center hidden group-hover:flex shadow-apple-sm hover:brightness-110 transition-all"
           aria-label={`Delete ${label} breaker`}
         >
           <i className="fas fa-times" aria-hidden="true" />

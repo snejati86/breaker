@@ -1,8 +1,12 @@
-import type { DeviceType } from '../constants/devices';
+import type { DeviceCategory } from '../constants/devices';
 
-export interface Device extends DeviceType {
+export interface Device {
   uid: string;
+  name: string;
+  watts: number;
+  icon: string;
   isOn: boolean;
+  category?: DeviceCategory;
 }
 
 export interface Component {

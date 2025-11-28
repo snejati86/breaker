@@ -180,7 +180,7 @@ const CircuitEditor: React.FC<CircuitEditorProps> = ({
                         <div
                           data-testid="component-temp"
                           data-temp-value={(component.temperature ?? 75).toFixed(2)}
-                          className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-semibold ${getTemperatureBadgeClasses(
+                          className={`absolute top-2 right-2 px-2 py-0.5 rounded-full text-xs font-semibold ${getTemperatureBadgeClasses(
                             component.temperature ?? 75
                           )}`}
                           title="Component temperature"

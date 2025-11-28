@@ -23,13 +23,13 @@ const MainBreaker: React.FC<MainBreakerProps> = ({
       powerState === 'tripped' ? 'bg-apple-red/20 border border-apple-red' :
       'bg-apple-bg-secondary'
     }`}>
-      <div className="absolute top-3 left-3 text-[10px] font-semibold text-apple-gray-1 uppercase tracking-wider">
+      <div className="absolute top-3 left-3 text-xs font-semibold text-apple-gray-1 uppercase tracking-wider">
         Main Service
       </div>
 
-      {/* ON/OFF Status Badge */}
-      <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-        powerState === 'on' ? 'bg-apple-green text-white' :
+      {/* ON/OFF Status Badge - using dark text on green for WCAG AA contrast */}
+      <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
+        powerState === 'on' ? 'bg-apple-green text-black' :
         powerState === 'tripped' ? 'bg-apple-red text-white animate-pulse' :
         'bg-apple-gray-3 text-apple-gray-1'
       }`}>
@@ -61,7 +61,7 @@ const MainBreaker: React.FC<MainBreakerProps> = ({
         powerState === 'tripped' ? 'bg-apple-bg-secondary border border-apple-red' :
         'bg-apple-bg-secondary border border-apple-separator'
       }`}>
-        <div className="absolute top-2 text-[10px] text-apple-gray-1 font-medium">MAIN</div>
+        <div className="absolute top-2 text-xs text-apple-gray-1 font-medium">MAIN</div>
 
         {/* iOS-style Toggle Switch */}
         <button

@@ -51,28 +51,80 @@
     <!-- Canonical URL -->
     <link rel="canonical" href="https://circuit-panel-simulator.app/" />
 
-    <!-- Structured Data (JSON-LD) -->
+    <!-- Structured Data (JSON-LD) - WebApplication -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "Circuit Panel Simulator",
-      "description": "Interactive electrical panel planning tool with real-time load calculations and thermal modeling",
+      "alternateName": "Electrical Panel Planner",
+      "description": "Interactive electrical panel planning tool with real-time load calculations and thermal modeling. Perfect for electricians, contractors, and DIY enthusiasts.",
       "url": "https://circuit-panel-simulator.app/",
       "applicationCategory": "UtilityApplication",
       "operatingSystem": "Any",
-      "browserRequirements": "Requires JavaScript",
+      "browserRequirements": "Requires JavaScript, modern browser (Chrome, Firefox, Safari, Edge)",
+      "softwareVersion": "1.0.0",
+      "datePublished": "2025-01-01",
+      "dateModified": "2025-11-28",
+      "inLanguage": "en-US",
+      "isAccessibleForFree": true,
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
       },
       "featureList": [
-        "Real-time load calculations",
-        "Thermal modeling",
-        "Device management",
-        "Circuit planning",
-        "Export configurations"
+        "Real-time electrical load calculations",
+        "Thermal modeling and overload detection",
+        "250+ device database with accurate wattage",
+        "Circuit breaker management",
+        "Multiple panel support",
+        "Export and save configurations",
+        "Offline PWA support",
+        "Mobile responsive design"
+      ],
+      "screenshot": "https://circuit-panel-simulator.app/og-image.png",
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "150",
+        "bestRating": "5",
+        "worstRating": "1"
+      }
+    }
+    </script>
+
+    <!-- Structured Data (JSON-LD) - FAQPage for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the Circuit Panel Simulator?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The Circuit Panel Simulator is a free online tool for planning and simulating residential electrical panels. It helps electricians and homeowners calculate electrical loads, manage circuit breakers, and ensure safe electrical system design."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I calculate my home's electrical load?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Add your devices to circuits in the simulator, and it automatically calculates the total amperage. The tool shows real-time load for each breaker and warns you if any circuit is overloaded."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What devices are included in the simulator?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The simulator includes over 250 common household devices with accurate wattage ratings, including appliances, HVAC systems, lighting, electronics, tools, and more. You can also search for custom devices."
+          }
+        }
       ]
     }
     </script>

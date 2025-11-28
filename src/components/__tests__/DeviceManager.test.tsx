@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import DeviceManager from '../DeviceManager';
 import type { Component } from '../../types';
 
@@ -33,6 +34,8 @@ describe('DeviceManager', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Clear localStorage between tests
+    localStorage.clear();
   });
 
   describe('rendering', () => {
@@ -49,17 +52,29 @@ describe('DeviceManager', () => {
       expect(screen.getByText('Ground Wire')).toBeInTheDocument();
     });
 
-    it('should render add device dropdown', () => {
+    it('should render add device picker button', () => {
       render(<DeviceManager {...defaultProps} />);
 
-      expect(screen.getByRole('combobox')).toBeInTheDocument();
+      // DevicePicker uses a button with aria-haspopup="listbox"
+      const pickerButton = screen.getByRole('button', { name: /add device/i });
+      expect(pickerButton).toBeInTheDocument();
+      expect(pickerButton).toHaveAttribute('aria-haspopup', 'listbox');
     });
 
-    it('should show "+ Plug In Device..." as default option', () => {
+    it('should show "+ Add Device..." as default placeholder for outlets', () => {
       render(<DeviceManager {...defaultProps} />);
 
-      const dropdown = screen.getByRole('combobox') as HTMLSelectElement;
-      expect(dropdown.value).toBe('');
+      expect(screen.getByText('+ Add Device...')).toBeInTheDocument();
+    });
+
+    it('should show "+ Add Light..." as default placeholder for switches', () => {
+      const switchComponent: Component = {
+        ...mockComponent,
+        type: 'switch',
+      };
+      render(<DeviceManager {...defaultProps} component={switchComponent} />);
+
+      expect(screen.getByText('+ Add Light...')).toBeInTheDocument();
     });
   });
 
@@ -69,6 +84,12 @@ describe('DeviceManager', () => {
 
       expect(screen.getByTestId('device-list')).toBeInTheDocument();
       expect(screen.queryByTestId('device-row')).not.toBeInTheDocument();
+    });
+
+    it('should show "No devices connected" when list is empty', () => {
+      render(<DeviceManager {...defaultProps} />);
+
+      expect(screen.getByText('No devices connected')).toBeInTheDocument();
     });
 
     it('should render device list correctly', () => {
@@ -119,85 +140,88 @@ describe('DeviceManager', () => {
     });
   });
 
-  describe('adding devices', () => {
-    it('should auto-add device when selected from dropdown', () => {
+  describe('adding devices via picker', () => {
+    it('should open picker when button is clicked', async () => {
+      const user = userEvent.setup();
       render(<DeviceManager {...defaultProps} />);
 
-      const dropdown = screen.getByRole('combobox');
+      const pickerButton = screen.getByRole('button', { name: /add device/i });
+      await user.click(pickerButton);
 
-      // Select LED Bulb - should auto-add
-      fireEvent.change(dropdown, { target: { value: 'LED Bulb' } });
+      // Should show search input and device list
+      expect(screen.getByRole('searchbox')).toBeInTheDocument();
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
 
-      // Should call onAddDevice immediately
+    it('should add device when selected from picker', async () => {
+      const user = userEvent.setup();
+      render(<DeviceManager {...defaultProps} />);
+
+      // Open picker
+      const pickerButton = screen.getByRole('button', { name: /add device/i });
+      await user.click(pickerButton);
+
+      // Click on a device option (LED Bulb is a common device)
+      const deviceOption = await screen.findByRole('option', { name: /LED Bulb \(9W\)/i });
+      await user.click(deviceOption);
+
+      // Should call onAddDevice with the selected device
       expect(defaultProps.onAddDevice).toHaveBeenCalledTimes(1);
-
-      // Verify the device added has correct properties
       const addedDevice = defaultProps.onAddDevice.mock.calls[0][0];
-      expect(addedDevice.name).toBe('LED Bulb');
-      expect(addedDevice.watts).toBe(10);
+      expect(addedDevice.name).toBe('LED Bulb (9W)');
+      expect(addedDevice.watts).toBe(9);
       expect(addedDevice.uid).toBeDefined();
       expect(addedDevice.isOn).toBe(true);
     });
 
-    it('should prevent duplicate device addition when same device is selected rapidly', async () => {
+    it('should close picker after selecting a device', async () => {
+      const user = userEvent.setup();
       render(<DeviceManager {...defaultProps} />);
 
-      const dropdown = screen.getByRole('combobox');
+      // Open picker
+      const pickerButton = screen.getByRole('button', { name: /add device/i });
+      await user.click(pickerButton);
 
-      // Simulate rapid selection attempts of the same device
-      fireEvent.change(dropdown, { target: { value: 'LED Bulb' } });
-      fireEvent.change(dropdown, { target: { value: 'LED Bulb' } });
+      // Click on a device
+      const deviceOption = await screen.findByRole('option', { name: /LED Bulb \(9W\)/i });
+      await user.click(deviceOption);
 
-      // Should only call onAddDevice once due to debounce
-      expect(defaultProps.onAddDevice).toHaveBeenCalledTimes(1);
+      // Picker should close (listbox should not be visible)
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
-    it('should reset select value immediately after adding device', () => {
+    it('should allow searching for devices', async () => {
+      const user = userEvent.setup();
       render(<DeviceManager {...defaultProps} />);
 
-      const dropdown = screen.getByRole('combobox') as HTMLSelectElement;
+      // Open picker
+      const pickerButton = screen.getByRole('button', { name: /add device/i });
+      await user.click(pickerButton);
 
-      // Select LED Bulb
-      fireEvent.change(dropdown, { target: { value: 'LED Bulb' } });
+      // Type in search box - use a specific device name
+      const searchInput = screen.getByRole('searchbox');
+      await user.type(searchInput, 'microwave');
 
-      // Select value should be reset to empty string immediately
-      expect(dropdown.value).toBe('');
-
-      // Should have added device
-      expect(defaultProps.onAddDevice).toHaveBeenCalledTimes(1);
+      // Should show search results - use findAllByRole since there may be multiple microwave types
+      const results = await screen.findAllByRole('option', { name: /microwave/i });
+      expect(results.length).toBeGreaterThan(0);
     });
 
-    it('should allow adding different devices sequentially after debounce', async () => {
-      vi.useFakeTimers();
+    it('should close picker on escape key', async () => {
+      const user = userEvent.setup();
       render(<DeviceManager {...defaultProps} />);
 
-      const dropdown = screen.getByRole('combobox');
+      // Open picker
+      const pickerButton = screen.getByRole('button', { name: /add device/i });
+      await user.click(pickerButton);
 
-      // Add first device
-      fireEvent.change(dropdown, { target: { value: 'LED Bulb' } });
-      expect(defaultProps.onAddDevice).toHaveBeenCalledTimes(1);
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
 
-      // Advance timers past the debounce period (200ms)
-      await vi.advanceTimersByTimeAsync(250);
+      // Press Escape
+      await user.keyboard('{Escape}');
 
-      // Add second device
-      fireEvent.change(dropdown, { target: { value: 'Laptop' } });
-
-      // Should call onAddDevice twice for different devices
-      expect(defaultProps.onAddDevice).toHaveBeenCalledTimes(2);
-
-      vi.useRealTimers();
-    });
-
-    it('should not add device when empty option is selected', () => {
-      render(<DeviceManager {...defaultProps} />);
-
-      const dropdown = screen.getByRole('combobox');
-
-      // Select the empty/placeholder option
-      fireEvent.change(dropdown, { target: { value: '' } });
-
-      expect(defaultProps.onAddDevice).not.toHaveBeenCalled();
+      // Picker should close
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
   });
 
@@ -220,11 +244,9 @@ describe('DeviceManager', () => {
         <DeviceManager {...defaultProps} component={componentWithDevices} />
       );
 
-      const powerButton = screen
-        .getByText('Test Device')
-        .closest('div')
-        ?.querySelector('button');
-      fireEvent.click(powerButton!);
+      // Find power button by its aria-label
+      const powerButton = screen.getByRole('button', { name: /turn test device off/i });
+      fireEvent.click(powerButton);
 
       expect(defaultProps.onToggleDevice).toHaveBeenCalledWith('device-1');
     });
@@ -247,11 +269,31 @@ describe('DeviceManager', () => {
         <DeviceManager {...defaultProps} component={componentWithDevices} />
       );
 
-      const deviceRow = screen.getByTestId('device-row');
-      const removeButton = deviceRow.querySelectorAll('button')[1];
-      fireEvent.click(removeButton!);
+      // Find remove button by its aria-label
+      const removeButton = screen.getByRole('button', { name: /remove test device/i });
+      fireEvent.click(removeButton);
 
       expect(defaultProps.onRemoveDevice).toHaveBeenCalledWith('device-1');
+    });
+
+    it('should have correct aria-pressed state for device power button', () => {
+      const componentWithDevices: Component = {
+        ...mockComponent,
+        devices: [
+          { name: 'On Device', watts: 100, icon: 'fa-1', uid: 'd1', isOn: true },
+          { name: 'Off Device', watts: 200, icon: 'fa-2', uid: 'd2', isOn: false },
+        ],
+      };
+
+      render(
+        <DeviceManager {...defaultProps} component={componentWithDevices} />
+      );
+
+      const onButton = screen.getByRole('button', { name: /turn on device off/i });
+      const offButton = screen.getByRole('button', { name: /turn off device on/i });
+
+      expect(onButton).toHaveAttribute('aria-pressed', 'true');
+      expect(offButton).toHaveAttribute('aria-pressed', 'false');
     });
   });
 
@@ -283,19 +325,21 @@ describe('DeviceManager', () => {
     });
   });
 
-  describe('switch vs outlet', () => {
-    it('should show DEVICE_TYPES options for outlet', () => {
+  describe('switch vs outlet filtering', () => {
+    it('should show all devices for outlet component', async () => {
+      const user = userEvent.setup();
       render(<DeviceManager {...defaultProps} />);
 
-      const dropdown = screen.getByRole('combobox');
-      fireEvent.click(dropdown);
+      const pickerButton = screen.getByRole('button', { name: /add device/i });
+      await user.click(pickerButton);
 
-      // Check for outlet-specific devices
+      // Common devices should include non-lighting items
       expect(screen.getByText(/Laptop/)).toBeInTheDocument();
       expect(screen.getByText(/Microwave/)).toBeInTheDocument();
     });
 
-    it('should show LIGHT_TYPES options for switch', () => {
+    it('should filter to lighting devices for switch component', async () => {
+      const user = userEvent.setup();
       const switchComponent: Component = {
         ...mockComponent,
         type: 'switch',
@@ -303,12 +347,38 @@ describe('DeviceManager', () => {
 
       render(<DeviceManager {...defaultProps} component={switchComponent} />);
 
-      const dropdown = screen.getByRole('combobox');
-      fireEvent.click(dropdown);
+      const pickerButton = screen.getByRole('button', { name: /add light/i });
+      await user.click(pickerButton);
 
-      // Check for light-specific devices
-      expect(screen.getByText(/Chandelier/)).toBeInTheDocument();
-      expect(screen.getByText(/Flood Light/)).toBeInTheDocument();
+      // Search for a lighting device
+      const searchInput = screen.getByRole('searchbox');
+      await user.type(searchInput, 'chandelier');
+
+      // Use findAllByRole since there are multiple chandelier variants
+      await waitFor(async () => {
+        const chandeliers = screen.getAllByText(/Chandelier/);
+        expect(chandeliers.length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  describe('custom device search modal', () => {
+    it('should show search link', () => {
+      render(<DeviceManager {...defaultProps} />);
+
+      expect(screen.getByText(/can't find your device/i)).toBeInTheDocument();
+    });
+
+    it('should open custom search modal when link is clicked', async () => {
+      const user = userEvent.setup();
+      render(<DeviceManager {...defaultProps} />);
+
+      const searchLink = screen.getByText(/can't find your device/i).closest('button')!;
+      await user.click(searchLink);
+
+      // Modal should open with its title
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText('Search for Device')).toBeInTheDocument();
     });
   });
 
@@ -337,6 +407,39 @@ describe('DeviceManager', () => {
 
       const managers = screen.getAllByTestId('device-manager');
       expect(managers).toHaveLength(3);
+    });
+  });
+
+  describe('accessibility', () => {
+    it('should have accessible device list', () => {
+      render(<DeviceManager {...defaultProps} />);
+
+      expect(screen.getByRole('list', { name: /connected devices/i })).toBeInTheDocument();
+    });
+
+    it('should have descriptive labels for all interactive elements', () => {
+      const componentWithDevices: Component = {
+        ...mockComponent,
+        devices: [
+          {
+            name: 'Test Device',
+            watts: 100,
+            icon: 'fa-test',
+            uid: 'device-1',
+            isOn: true,
+          },
+        ],
+      };
+
+      render(
+        <DeviceManager {...defaultProps} component={componentWithDevices} />
+      );
+
+      // Power button should have descriptive aria-label
+      expect(screen.getByRole('button', { name: /turn test device off/i })).toBeInTheDocument();
+
+      // Remove button should have descriptive aria-label
+      expect(screen.getByRole('button', { name: /remove test device/i })).toBeInTheDocument();
     });
   });
 });

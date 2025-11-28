@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Apple Dark Mode Colors
+        // Apple Dark Mode Colors (WCAG AA Accessible)
         apple: {
           bg: '#000000',
           'bg-elevated': '#1C1C1E',
@@ -20,17 +20,20 @@ module.exports = {
           'label-secondary': '#EBEBF5',
           'label-tertiary': '#EBEBF599',
           'label-quaternary': '#EBEBF54D',
-          // Accent Colors
-          blue: '#0A84FF',
-          green: '#30D158',
+          // Accent Colors (WCAG AA compliant)
+          blue: '#0066CC',         // Darker blue for 5.7:1 contrast with white text
+          'blue-light': '#2997FF', // Lighter blue for large text/decorative use
+          green: '#32D74B',        // Apple green
+          'green-text': '#1B5E20', // Dark green for text on green bg
           red: '#FF453A',
           orange: '#FF9F0A',
           yellow: '#FFD60A',
           purple: '#BF5AF2',
           pink: '#FF375F',
           teal: '#64D2FF',
-          // UI Colors
-          'gray-1': '#8E8E93',
+          // UI Colors (WCAG AA compliant)
+          'gray-1': '#AEAEB2',     // Lightened from #8E8E93 for 4.5:1 contrast
+          'gray-1-dim': '#8E8E93', // Original for decorative use only
           'gray-2': '#636366',
           'gray-3': '#48484A',
           'gray-4': '#3A3A3C',
