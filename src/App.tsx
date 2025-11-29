@@ -3,7 +3,7 @@ import ElectricalPanel from './components/ElectricalPanel';
 import CircuitEditor from './components/CircuitEditor';
 import PanelDrawer from './components/PanelDrawer';
 import { useBreakers } from './hooks/useBreakers';
-import { usePanels } from './hooks/usePanels';
+import { usePersistedState } from './hooks/usePersistedState';
 import { useSimulation } from './hooks/useSimulation';
 import type { Breaker } from './types';
 import './App.css';
@@ -11,7 +11,6 @@ import './App.css';
 type MobileView = 'panel' | 'editor';
 
 function App() {
-  const [timeSpeed, setTimeSpeed] = useState(1);
   const [notice, setNotice] = useState<string | null>(null);
   const [mobileView, setMobileView] = useState<MobileView>('panel');
   const [drawerOpen, setDrawerOpen] = useState(true);
@@ -23,7 +22,7 @@ function App() {
     setNotice(message);
   }, []);
 
-  // Panel management
+  // Panel management with persistence
   const {
     panels,
     setPanels,
@@ -37,7 +36,9 @@ function App() {
     updatePanelBreakers,
     togglePanelMainPower,
     setPanelTripped,
-  } = usePanels(notify);
+    timeSpeed,
+    setTimeSpeed,
+  } = usePersistedState(notify);
 
   // Get current panel's state
   const currentBreakers = useMemo(
@@ -316,7 +317,7 @@ function App() {
             </select>
             <select
               value={timeSpeed}
-              onChange={(e) => setTimeSpeed(Number(e.target.value))}
+              onChange={(e) => setTimeSpeed(Number(e.target.value) as 1 | 10 | 50)}
               className="bg-apple-bg-tertiary border border-apple-separator rounded-apple text-xs px-3 py-2 text-white focus:border-apple-blue focus:ring-1 focus:ring-apple-blue transition-all"
               aria-label="Simulation speed"
             >
@@ -365,7 +366,7 @@ function App() {
           <select
             id="time-speed"
             value={timeSpeed}
-            onChange={(e) => setTimeSpeed(Number(e.target.value))}
+            onChange={(e) => setTimeSpeed(Number(e.target.value) as 1 | 10 | 50)}
             className="bg-apple-bg-tertiary border border-apple-separator rounded-apple text-xs px-3 py-2 text-white focus:border-apple-blue focus:ring-1 focus:ring-apple-blue transition-all"
             aria-label="Simulation speed multiplier"
           >
