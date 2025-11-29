@@ -204,10 +204,6 @@ test.describe('Multi-Panel Functionality', () => {
 
     // Verify device was added
     await expect(deviceList.getByText('Space Heater')).toBeVisible();
-
-    // Verify load is shown in header (0.5A + 12.5A = 13A)
-    // The load display should show approximately 13A
-    const loadDisplay = page.getByText(/load/i).first();
     // Look for the load value near the Load label
     await expect(page.locator('text=/13\\.\\d/')).toBeVisible();
   });
