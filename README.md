@@ -1,6 +1,7 @@
 # Circuit Panel Simulator
 
-An interactive electrical panel simulation tool for planning, visualizing, and understanding residential electrical systems.
+An <img width="1496" height="771" alt="Screenshot 2025-11-28 at 4 00 46 PM" src="https://github.com/user-attachments/assets/6408b11a-3f85-47c7-8d80-03eb14f01037" />
+interactive electrical panel simulation tool for planning, visualizing, and understanding residential electrical systems.
 
 ## What is this?
 
