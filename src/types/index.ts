@@ -47,3 +47,11 @@ export interface SearchModal {
   runIndex: number | null;
   compIndex: number | null;
 }
+
+export interface PersistedState {
+  version: number;
+  panels: Panel[];
+  selectedPanelId: string | null;
+  timeSpeed: 1 | 10 | 50;
+  savedAt: string;
+}
