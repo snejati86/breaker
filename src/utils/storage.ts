@@ -23,7 +23,8 @@ const sanitizePanelsForStorage = (panels: Panel[]): Panel[] => {
       runs: breaker.runs.map(run =>
         run.map(component => {
           // Create new component without temperature
-          const { temperature: _, ...rest } = component;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { temperature: _temp, ...rest } = component;
           return rest;
         })
       ),

@@ -2,8 +2,10 @@ import { test, expect } from '@playwright/test';
 
 const navigateToKitchen = async (page: import('@playwright/test').Page) => {
   await page.goto('/');
-  await page.waitForSelector('text=PANEL SIM V19', { timeout: 10000 });
-  await page.click('text=Kitchen');
+  await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
+  // Use data-testid selector to click the Kitchen breaker module specifically
+  const kitchenBreaker = page.locator('[data-testid^="breaker-module-"]').filter({ hasText: 'Kitchen' });
+  await kitchenBreaker.click();
   await page.waitForSelector('[data-testid="device-manager"]', { timeout: 5000 });
 };
 
@@ -20,15 +22,18 @@ test.describe('Custom device search', () => {
 
     const initialCount = await deviceRows.count();
 
-    const dropdown = manager.locator('select');
-    await dropdown.selectOption('CUSTOM_SEARCH');
+    // Click the custom search button (instead of using a select dropdown)
+    await manager.getByRole('button', { name: /search for it/i }).click();
+    await page.waitForTimeout(200);
 
-    const modal = page.locator('text=Add Device').last();
+    // Verify the search modal is visible
+    const modal = page.getByRole('dialog');
     await expect(modal).toBeVisible();
 
+    // Type in the search query
     const query = `toaster wattage ${Date.now()}`; // unique query to avoid caching
-    await page.getByPlaceholder('e.g. Toaster').fill(query);
-    await page.getByRole('button', { name: 'Add', exact: true }).click();
+    await page.getByPlaceholder(/waffle maker|air purifier/i).fill(query);
+    await page.getByRole('button', { name: /search.*add/i }).click();
 
     // Wait for search overlay to disappear
     await page.waitForSelector('text=Analyzing...', { state: 'detached', timeout: 15000 }).catch(() => {});
@@ -39,4 +44,3 @@ test.describe('Custom device search', () => {
     console.log('[custom-search] Added device row:', latestText);
   });
 });
-

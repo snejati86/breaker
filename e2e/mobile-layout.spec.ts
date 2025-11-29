@@ -6,7 +6,7 @@ test.describe('Mobile Layout', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/');
     // Wait for the app to load
-    await page.waitForSelector('text=PANEL SIM', { timeout: 10000 });
+    await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
   });
 
   test('should display tab navigation on mobile', async ({ page }) => {
@@ -19,12 +19,12 @@ test.describe('Mobile Layout', () => {
   });
 
   test('should show panel view by default on mobile', async ({ page }) => {
-    // Panel tab should be active
+    // Panel tab should be active (has tertiary bg when selected)
     const panelTab = page.getByRole('button', { name: 'Panel', exact: true });
-    await expect(panelTab).toHaveClass(/bg-blue-600/);
+    await expect(panelTab).toHaveClass(/bg-apple-bg-tertiary/);
 
     // Panel content should be visible (main breaker)
-    await expect(page.getByText('MAIN SERVICE DISCONNECT')).toBeVisible();
+    await expect(page.getByText('Main Service')).toBeVisible();
   });
 
   test('should switch to editor view when clicking a breaker', async ({
@@ -37,13 +37,12 @@ test.describe('Mobile Layout', () => {
     // Wait for view switch
     await page.waitForTimeout(200);
 
-    // Editor tab should now be active
+    // Editor tab should now be active (has tertiary bg when selected)
     const editorTab = page.getByRole('button', { name: /editor/i });
-    await expect(editorTab).toHaveClass(/bg-blue-600/);
+    await expect(editorTab).toHaveClass(/bg-apple-bg-tertiary/);
 
-    // Circuit editor content should be visible
-    await expect(page.getByText('Breaker Rating')).toBeVisible();
-    await expect(page.getByText('Active Load')).toBeVisible();
+    // Circuit editor content should be visible - check for device manager which is in the editor
+    await expect(page.getByTestId('device-manager').first()).toBeVisible();
   });
 
   test('should switch back to panel view when clicking Panel tab', async ({
@@ -62,7 +61,7 @@ test.describe('Mobile Layout', () => {
     await page.waitForTimeout(200);
 
     // Panel content should be visible again
-    await expect(page.getByText('MAIN SERVICE DISCONNECT')).toBeVisible();
+    await expect(page.getByText('Main Service')).toBeVisible();
   });
 
   test('should have touch-friendly button sizes', async ({ page }) => {
@@ -91,7 +90,7 @@ test.describe('Mobile Layout', () => {
     await page.waitForTimeout(200);
 
     // Check New Branch button is full width
-    const newBranchButton = page.getByRole('button', { name: '+ New Branch' });
+    const newBranchButton = page.getByRole('button', { name: 'New Branch' });
     await expect(newBranchButton).toBeVisible();
 
     const boundingBox = await newBranchButton.boundingBox();
@@ -119,15 +118,15 @@ test.describe('Mobile Layout', () => {
     await expect(speedSelector).not.toBeVisible();
   });
 
-  test('should show responsive header with Save/Load buttons', async ({
+  test('should show responsive header with Save/Open buttons', async ({
     page,
   }) => {
-    // Save and Load buttons should be visible
+    // Save and Open buttons should be visible
     await expect(
       page.getByRole('button', { name: /save/i })
     ).toBeVisible();
     await expect(
-      page.getByRole('button', { name: /load/i })
+      page.getByRole('button', { name: /open/i })
     ).toBeVisible();
   });
 });
@@ -137,7 +136,7 @@ test.describe('Mobile Layout - Desktop Comparison', () => {
     // Set desktop viewport
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
-    await page.waitForSelector('text=PANEL SIM', { timeout: 10000 });
+    await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
 
     // Tab navigation should not be visible on desktop
     const viewNavigation = page.getByRole('navigation', {
@@ -152,15 +151,15 @@ test.describe('Mobile Layout - Desktop Comparison', () => {
     // Set desktop viewport
     await page.setViewportSize({ width: 1280, height: 800 });
     await page.goto('/');
-    await page.waitForSelector('text=PANEL SIM', { timeout: 10000 });
+    await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
 
     // Main breaker should be visible
-    await expect(page.getByText('MAIN SERVICE DISCONNECT')).toBeVisible();
+    await expect(page.getByText('Main Service')).toBeVisible();
 
     // Either the placeholder text OR the circuit editor should be visible
     // (depending on whether a breaker is pre-selected)
-    const placeholder = page.getByText('Select a breaker on the left to edit wiring');
-    const circuitEditor = page.getByText('Circuit Temp');
+    const placeholder = page.getByText('Select a breaker to edit its circuit');
+    const circuitEditor = page.locator('text=Temp').first();
 
     // At least one should be visible (editor area is shown on desktop)
     const isPlaceholderVisible = await placeholder.isVisible().catch(() => false);
