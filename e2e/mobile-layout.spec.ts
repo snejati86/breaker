@@ -19,7 +19,7 @@ test.describe('Mobile Layout', () => {
   });
 
   test('should show panel view by default on mobile', async ({ page }) => {
-    // Panel tab should be active (has tertiary bg when selected)
+    // Panel tab should be active (has bg-apple-bg-tertiary when selected)
     const panelTab = page.getByRole('button', { name: 'Panel', exact: true });
     await expect(panelTab).toHaveClass(/bg-apple-bg-tertiary/);
 
@@ -37,12 +37,13 @@ test.describe('Mobile Layout', () => {
     // Wait for view switch
     await page.waitForTimeout(200);
 
-    // Editor tab should now be active (has tertiary bg when selected)
+    // Editor tab should now be active (has bg-apple-bg-tertiary when selected)
     const editorTab = page.getByRole('button', { name: /editor/i });
     await expect(editorTab).toHaveClass(/bg-apple-bg-tertiary/);
 
-    // Circuit editor content should be visible - check for device manager which is in the editor
-    await expect(page.getByTestId('device-manager').first()).toBeVisible();
+    // Circuit editor content should be visible
+    await expect(page.getByText('Rating', { exact: true })).toBeVisible();
+    await expect(page.getByText('Load', { exact: true })).toBeVisible();
   });
 
   test('should switch back to panel view when clicking Panel tab', async ({
@@ -102,8 +103,8 @@ test.describe('Mobile Layout', () => {
   test('should show breaker name in Editor tab when breaker is selected', async ({
     page,
   }) => {
-    // Click on the Kitchen breaker
-    const kitchenBreaker = page.getByText('Kitchen').first();
+    // Click on the Kitchen breaker module
+    const kitchenBreaker = page.locator('[data-testid^="breaker-module-"]').filter({ hasText: 'Kitchen' });
     await kitchenBreaker.click();
     await page.waitForTimeout(200);
 
@@ -121,7 +122,7 @@ test.describe('Mobile Layout', () => {
   test('should show responsive header with Save/Open buttons', async ({
     page,
   }) => {
-    // Save and Open buttons should be visible
+    // Save and Open buttons should be visible (aria-labels contain these)
     await expect(
       page.getByRole('button', { name: /save/i })
     ).toBeVisible();
@@ -159,7 +160,7 @@ test.describe('Mobile Layout - Desktop Comparison', () => {
     // Either the placeholder text OR the circuit editor should be visible
     // (depending on whether a breaker is pre-selected)
     const placeholder = page.getByText('Select a breaker to edit its circuit');
-    const circuitEditor = page.locator('text=Temp').first();
+    const circuitEditor = page.getByText('Temp');
 
     // At least one should be visible (editor area is shown on desktop)
     const isPlaceholderVisible = await placeholder.isVisible().catch(() => false);

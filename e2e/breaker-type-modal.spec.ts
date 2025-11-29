@@ -4,8 +4,6 @@ test.describe('Breaker Type Modal', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to the app
     await page.goto('/');
-
-    // Wait for the app to load - look for the panel simulator
     await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
   });
 

@@ -3,7 +3,6 @@ import { test, expect } from '@playwright/test';
 const navigateToKitchen = async (page: import('@playwright/test').Page) => {
   await page.goto('/');
   await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
-  // Use data-testid selector to click the Kitchen breaker module specifically
   const kitchenBreaker = page.locator('[data-testid^="breaker-module-"]').filter({ hasText: 'Kitchen' });
   await kitchenBreaker.click();
   await page.waitForSelector('[data-testid="breaker-temp"]', { timeout: 5000 });
@@ -31,14 +30,25 @@ test.describe('Temperature Display', () => {
 
     const initialBreakerTemp = await readTemperature(breakerTemp);
 
-    // Add device using the device picker
+    // Use the DevicePicker to add a high-wattage device
     const firstDeviceManager = page.getByTestId('device-manager').first();
-    await firstDeviceManager.getByRole('button', { name: /add device/i }).click();
+
+    // Click the "Add Device..." button to open the picker
+    const addDeviceButton = firstDeviceManager.getByRole('button', { name: /add device/i });
+    await addDeviceButton.click();
     await page.waitForTimeout(200);
-    await page.getByRole('option', { name: /Space Heater/i }).first().click();
+
+    // Search for Space Heater and click it
+    const searchInput = page.getByRole('searchbox', { name: /search devices/i });
+    await searchInput.fill('Space Heater');
+    await page.waitForTimeout(200);
+
+    // Click on first Space Heater in the list (there are multiple wattage options)
+    const spaceHeaterOption = page.getByRole('option', { name: /space heater/i }).first();
+    await spaceHeaterOption.click();
     await page.waitForTimeout(300);
 
-    // Breaker temperature should rise with load
+    // Temperature should rise over time with the heavy load
     await expect
       .poll(async () => readTemperature(breakerTemp), { timeout: 6000, intervals: [500] })
       .toBeGreaterThanOrEqual(initialBreakerTemp);

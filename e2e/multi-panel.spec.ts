@@ -174,23 +174,38 @@ test.describe('Multi-Panel Functionality', () => {
     const deviceManager = page.locator('[data-testid="device-manager"]').first();
     const deviceList = deviceManager.locator('[data-testid="device-list"]');
 
-    // Add a Laptop using the device picker
-    await deviceManager.getByRole('button', { name: /add device/i }).click();
+    // Add a Laptop (60W = 0.5A at 120V) using DevicePicker
+    const addDeviceButton = deviceManager.getByRole('button', { name: /add device/i });
+    await addDeviceButton.click();
     await page.waitForTimeout(200);
-    await page.getByRole('option', { name: /Laptop/i }).first().click();
+
+    let searchInput = page.getByRole('searchbox', { name: /search devices/i });
+    await searchInput.fill('Laptop');
+    await page.waitForTimeout(200);
+
+    let deviceOption = page.getByRole('option', { name: /laptop/i }).first();
+    await deviceOption.click();
     await page.waitForTimeout(300);
 
     // Verify device was added (check in device list)
     await expect(deviceList.getByText('Laptop')).toBeVisible();
 
     // Add a Space Heater (1500W = 12.5A at 120V)
-    await deviceManager.getByRole('button', { name: /add device/i }).click();
+    await addDeviceButton.click();
     await page.waitForTimeout(200);
-    await page.getByRole('option', { name: /Space Heater/i }).first().click();
+
+    searchInput = page.getByRole('searchbox', { name: /search devices/i });
+    await searchInput.fill('Space Heater');
+    await page.waitForTimeout(200);
+
+    deviceOption = page.getByRole('option', { name: /space heater/i }).first();
+    await deviceOption.click();
     await page.waitForTimeout(300);
 
     // Verify device was added
     await expect(deviceList.getByText('Space Heater')).toBeVisible();
+    // Look for the load value near the Load label
+    await expect(page.locator('text=/13\\.\\d/')).toBeVisible();
   });
 
   test('complete workflow: create panel, add breaker, add device, switch panels, verify state', async ({
@@ -218,12 +233,20 @@ test.describe('Multi-Panel Functionality', () => {
     await newBreaker.click();
     await page.waitForTimeout(300);
 
-    // Add an LED Bulb (10W = ~0.08A) using device picker
+    // Add an LED Bulb (10W = ~0.08A) using DevicePicker
     const deviceManager = page.locator('[data-testid="device-manager"]').first();
     const deviceList = deviceManager.locator('[data-testid="device-list"]');
-    await deviceManager.getByRole('button', { name: /add device/i }).click();
+
+    let addDeviceButton = deviceManager.getByRole('button', { name: /add device/i });
+    await addDeviceButton.click();
     await page.waitForTimeout(200);
-    await page.getByRole('option', { name: /LED Bulb/i }).first().click();
+
+    let searchInput = page.getByRole('searchbox', { name: /search devices/i });
+    await searchInput.fill('LED Bulb');
+    await page.waitForTimeout(200);
+
+    let deviceOption = page.getByRole('option', { name: /led bulb/i }).first();
+    await deviceOption.click();
     await page.waitForTimeout(300);
 
     // Verify LED Bulb was added (check in device list)
@@ -245,9 +268,17 @@ test.describe('Multi-Panel Functionality', () => {
 
     const mainDeviceManager = page.locator('[data-testid="device-manager"]').first();
     const mainDeviceList = mainDeviceManager.locator('[data-testid="device-list"]');
-    await mainDeviceManager.getByRole('button', { name: /add device/i }).click();
+
+    addDeviceButton = mainDeviceManager.getByRole('button', { name: /add device/i });
+    await addDeviceButton.click();
     await page.waitForTimeout(200);
-    await page.getByRole('option', { name: /Microwave/i }).first().click();
+
+    searchInput = page.getByRole('searchbox', { name: /search devices/i });
+    await searchInput.fill('Microwave');
+    await page.waitForTimeout(200);
+
+    deviceOption = page.getByRole('option', { name: /microwave/i }).first();
+    await deviceOption.click();
     await page.waitForTimeout(300);
 
     // Verify Microwave was added
@@ -299,7 +330,7 @@ test.describe('Multi-Panel Functionality', () => {
   });
 
   test('should display current panel name in header', async ({ page }) => {
-    // The main header (with role="banner") should show the current panel name
+    // The header should show the current panel name (use role="banner" to get main header)
     const header = page.locator('header[role="banner"]');
     await expect(header).toContainText('Main Panel');
 

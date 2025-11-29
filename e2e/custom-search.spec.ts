@@ -3,7 +3,6 @@ import { test, expect } from '@playwright/test';
 const navigateToKitchen = async (page: import('@playwright/test').Page) => {
   await page.goto('/');
   await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
-  // Use data-testid selector to click the Kitchen breaker module specifically
   const kitchenBreaker = page.locator('[data-testid^="breaker-module-"]').filter({ hasText: 'Kitchen' });
   await kitchenBreaker.click();
   await page.waitForSelector('[data-testid="device-manager"]', { timeout: 5000 });
@@ -22,21 +21,21 @@ test.describe('Custom device search', () => {
 
     const initialCount = await deviceRows.count();
 
-    // Click the custom search button (instead of using a select dropdown)
-    await manager.getByRole('button', { name: /search for it/i }).click();
-    await page.waitForTimeout(200);
+    // Click "Can't find your device? Search for it" button to open custom search modal
+    const customSearchButton = manager.getByRole('button', { name: /can't find your device/i });
+    await customSearchButton.click();
 
-    // Verify the search modal is visible
-    const modal = page.getByRole('dialog');
+    // Wait for modal to appear
+    const modal = page.locator('text=Search for Device');
     await expect(modal).toBeVisible();
 
     // Type in the search query
     const query = `toaster wattage ${Date.now()}`; // unique query to avoid caching
-    await page.getByPlaceholder(/waffle maker|air purifier/i).fill(query);
-    await page.getByRole('button', { name: /search.*add/i }).click();
+    await page.getByPlaceholder(/waffle maker/i).fill(query);
+    await page.getByRole('button', { name: 'Search & Add' }).click();
 
     // Wait for search overlay to disappear
-    await page.waitForSelector('text=Analyzing...', { state: 'detached', timeout: 15000 }).catch(() => {});
+    await page.waitForSelector('text=Analyzing device...', { state: 'detached', timeout: 15000 }).catch(() => {});
 
     await expect(deviceRows).toHaveCount(initialCount + 1, { timeout: 15000 });
 
