@@ -5,8 +5,8 @@ test.describe('Breaker Type Modal', () => {
     // Navigate to the app
     await page.goto('/');
 
-    // Wait for the app to load - look for the panel simulator
-    await page.waitForSelector('text=PANEL SIM V19', { timeout: 10000 });
+    // Wait for the app to load - look for the Circuit Manager text in header
+    await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
   });
 
   test('should open modal when clicking an empty slot', async ({ page }) => {

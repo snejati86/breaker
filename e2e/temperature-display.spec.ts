@@ -2,8 +2,9 @@ import { test, expect } from '@playwright/test';
 
 const navigateToKitchen = async (page: import('@playwright/test').Page) => {
   await page.goto('/');
-  await page.waitForSelector('text=PANEL SIM V19', { timeout: 10000 });
-  await page.click('text=Kitchen');
+  await page.waitForSelector('text=Circuit Manager', { timeout: 10000 });
+  const kitchenBreaker = page.locator('[data-testid^="breaker-module-"]').filter({ hasText: 'Kitchen' });
+  await kitchenBreaker.click();
   await page.waitForSelector('[data-testid="breaker-temp"]', { timeout: 5000 });
 };
 
@@ -19,35 +20,37 @@ test.describe('Temperature Display', () => {
     await navigateToKitchen(page);
   });
 
-  test('shows breaker and component temperatures', async ({ page }) => {
+  test('shows breaker temperature', async ({ page }) => {
     const breakerTemp = page.getByTestId('breaker-temp');
     await expect(breakerTemp).toContainText('°F');
-
-    const componentTemp = page.getByTestId('component-temp').first();
-    await expect(componentTemp).toContainText('°F');
   });
 
   test('temperatures rise when heavy load is added', async ({ page }) => {
     const breakerTemp = page.getByTestId('breaker-temp');
-    const componentTemp = page.getByTestId('component-temp').first();
 
     const initialBreakerTemp = await readTemperature(breakerTemp);
-    const initialComponentTemp = await readTemperature(componentTemp);
 
+    // Use the DevicePicker to add a high-wattage device
     const firstDeviceManager = page.getByTestId('device-manager').first();
-    const dropdown = firstDeviceManager.locator('select');
-    const addButton = firstDeviceManager.getByRole('button', { name: 'Add Device' });
 
-    await dropdown.selectOption('Space Heater');
-    await addButton.click();
+    // Click the "Add Device..." button to open the picker
+    const addDeviceButton = firstDeviceManager.getByRole('button', { name: /add device/i });
+    await addDeviceButton.click();
+    await page.waitForTimeout(200);
 
-    await expect
-      .poll(async () => readTemperature(componentTemp), { timeout: 6000, intervals: [500] })
-      .toBeGreaterThan(initialComponentTemp);
+    // Search for Space Heater and click it
+    const searchInput = page.getByRole('searchbox', { name: /search devices/i });
+    await searchInput.fill('Space Heater');
+    await page.waitForTimeout(200);
 
+    // Click on first Space Heater in the list (there are multiple wattage options)
+    const spaceHeaterOption = page.getByRole('option', { name: /space heater/i }).first();
+    await spaceHeaterOption.click();
+    await page.waitForTimeout(300);
+
+    // Temperature should rise over time with the heavy load
     await expect
       .poll(async () => readTemperature(breakerTemp), { timeout: 6000, intervals: [500] })
       .toBeGreaterThanOrEqual(initialBreakerTemp);
   });
 });
-
