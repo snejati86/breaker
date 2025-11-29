@@ -2,6 +2,8 @@
 
 An interactive electrical panel simulation tool for planning, visualizing, and understanding residential electrical systems.
 
+**Live Demo**: [https://www.sina.bot/breaker/](https://www.sina.bot/breaker/)
+
 ## What is this?
 
 Circuit Panel Simulator is a web-based application that lets you design and simulate a residential electrical panel. It provides a realistic visualization of how breakers, circuits, and devices interact, complete with real-time load calculations and thermal modeling.
@@ -147,9 +149,23 @@ npm run test:e2e
 
 The project includes GitHub Actions for:
 - **Automated testing**: Runs lint and tests on every push/PR
-- **Production deployment**: Deploys to AWS S3 on main branch pushes
+- **Production deployment**: Deploys to AWS S3 + CloudFront on main branch pushes
 
 See `.github/workflows/ci.yml` for configuration.
+
+### Deployment Notes
+
+The app is configured with `base: '/breaker/'` in `vite.config.ts`, meaning:
+- All assets are served from the `/breaker/` path
+- S3 deployment must target the `/breaker/` subdirectory
+- CloudFront invalidation should use `/breaker/*`
+
+Required GitHub Secrets:
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_REGION`
+- `AWS_S3_BUCKET`
+- `AWS_CLOUDFRONT_DISTRIBUTION_ID` (optional, for cache invalidation)
 
 ## Safety Disclaimer
 
