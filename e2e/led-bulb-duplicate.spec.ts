@@ -17,7 +17,7 @@ test.describe('LED Bulb Duplicate Prevention', () => {
     await page.waitForSelector('[data-testid="device-manager"]', { timeout: 5000 });
   });
 
-  test('should only add LED Bulb once to an outlet when selected from dropdown', async ({ page }) => {
+  test('should add LED Bulb to an outlet when selected from picker', async ({ page }) => {
     const deviceManager = page.locator('[data-testid="device-manager"]').first();
     const deviceList = deviceManager.locator('[data-testid="device-list"]');
 
@@ -82,6 +82,10 @@ test.describe('LED Bulb Duplicate Prevention', () => {
 
     // Verify device was added
     await expect(deviceManager.locator('text=LED Bulb').first()).toBeVisible({ timeout: 1000 });
+
+    // Verify the picker button shows the placeholder again (not the selected value)
+    const addButton = deviceManager.getByRole('button', { name: /add device/i });
+    await expect(addButton).toBeVisible();
   });
 
   test('should allow adding LED Bulb to multiple outlets separately', async ({ page }) => {

@@ -29,6 +29,7 @@ test.describe('Custom device search', () => {
     const modal = page.locator('text=Search for Device');
     await expect(modal).toBeVisible();
 
+    // Type in the search query
     const query = `toaster wattage ${Date.now()}`; // unique query to avoid caching
     await page.getByPlaceholder(/waffle maker/i).fill(query);
     await page.getByRole('button', { name: 'Search & Add' }).click();

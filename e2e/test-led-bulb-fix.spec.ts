@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 
+
 test('Verify LED Bulb is only added once when selected from dropdown', async ({ page }) => {
   // Navigate to the app
   await page.goto('/');
